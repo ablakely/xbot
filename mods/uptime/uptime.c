@@ -13,15 +13,18 @@
 DWORD startTick;
 
 void parseUptime(const char *output, struct irc_conn *bot, const char *where) {
-    // Variable definitions moved to the top
     const char *keyword = "Statistics since ";
     const char *uptime_start;
     int month, day, year, hour, minute;
     SYSTEMTIME uptime_systemtime, current_time;
     ULONGLONG uptime_ticks, current_ticks;
     ULONGLONG uptime_seconds;
+    char buf[BUFFER_SIZE];
     int days, hours, minutes;
 
+    OSVERSIONINFOEX osInfo;
+    ZeroMemory(&osInfo, sizeof(OSVERSIONINFOEX));
+    osInfo.dwOSVersionInfoSize = sizeof(OSVERSIONINFOEX);
 
     uptime_start = strstr(output, keyword);
     if (uptime_start == NULL) {
@@ -58,12 +61,50 @@ void parseUptime(const char *output, struct irc_conn *bot, const char *where) {
 
     uptime_seconds = (current_ticks - uptime_ticks) / 10000000UL; // Convert to seconds
 
-    uptime_seconds -= 1320;
+    uptime_seconds -= 1470;
 
     days = uptime_seconds / (24 * 3600);
     hours = (uptime_seconds % (24 * 3600)) / 3600;
     minutes = (uptime_seconds % 3600) / 60;
-    irc_privmsg(bot, where, "Uptime: %d days, %d hours, %d minutes\n", days, hours, minutes);
+
+    if (GetVersionEx((OSVERSIONINFO*)&osInfo)) {
+        if (osInfo.dwMajorVersion == 10 && osInfo.dwMinorVersion == 0) {
+            sprintf(buf, "Windows 10");
+        } else if (osInfo.dwMajorVersion == 6 && osInfo.dwMinorVersion == 3) {
+            sprintf(buf, "Windows 8.1");
+        } else if (osInfo.dwMajorVersion == 6 && osInfo.dwMinorVersion == 2) {
+            sprintf(buf, "Windows 8");
+        } else if (osInfo.dwMajorVersion == 6 && osInfo.dwMinorVersion == 1) {
+            // detect Windows 7 or Windows Server 2008 R2
+            if (osInfo.wProductType == VER_NT_WORKSTATION) {
+                sprintf(buf, "Windows 7");
+            } else {
+                sprintf(buf, "Windows Server 2008 R2");
+            }
+        } else if (osInfo.dwMajorVersion == 6 && osInfo.dwMinorVersion == 0) {
+            // detect Windows Vista or Windows Server 2008
+
+            if (osInfo.wProductType == VER_NT_WORKSTATION) {
+                sprintf(buf, "Windows Vista");
+            } else {
+                sprintf(buf, "Windows Server 2008");
+            }
+        } else if (osInfo.dwMajorVersion == 5 && osInfo.dwMinorVersion == 1) {
+            // detect Windows XP or Windows Server 2003
+
+            if (osInfo.wProductType == VER_NT_WORKSTATION) {
+                sprintf(buf, "Windows XP");
+            } else {
+                sprintf(buf, "Windows Server 2003");
+            }
+        } else if (osInfo.dwMajorVersion == 5 && osInfo.dwMinorVersion == 0) {
+            sprintf(buf, "Windows 2000");
+        } else {
+            sprintf(buf, "Windows");
+        }
+    }
+
+    irc_privmsg(bot, where, "%s: %d days, %d hours, and %d minutes up\n", buf, days, hours, minutes);
 }
 
 char *executeCommand(const char *command)
@@ -110,8 +151,6 @@ MY_API void up(struct irc_conn *bot, char *user, char *host, char *chan, char *t
 #else
 	char buf[100];
 	FILE* file;
-
-	printf("dbug up called: %s!%s %s\n", user, host, text);
 
 	if (!strcmp(text, "!uptime"))
 	{

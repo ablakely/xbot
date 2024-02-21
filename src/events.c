@@ -31,6 +31,7 @@ void init_event_type(char *type)
 
 void init_events()
 {
+    init_event_type(TICK);
     init_event_type(PRIVMSG_SELF);
     init_event_type(PRIVMSG_CHAN);
     init_event_type(JOIN);
@@ -136,7 +137,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
                 irc_notice(bot, usr, "You are unauthorized to use this command.");
             }
         }
-        else if (!strcmp("PRINT_HANDLERS", cmd))
+        else if (!strcmp("HANDLERS", cmd))
         {
             if (!strcmp(bot->admin, usr))
             {

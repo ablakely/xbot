@@ -15,6 +15,7 @@
 #include "events.h"
 #include "module.h"
 #include "channel.h"
+#include "timers.h"
 
 #ifdef _WIN32
 #include <winsock2.h>
@@ -32,11 +33,18 @@ int main()
     struct irc_conn bot;
     struct timeval tv;
 
+    struct timeval last_ping;
+
+
+
     char *p;
 
 	int bytesRecv;
+    
+    last_ping.tv_sec = time(NULL);
 
     init_events();
+    init_timers();
     init_mods();
 
     // Read the config
@@ -50,6 +58,9 @@ int main()
 
     for (;;)
     {
+        fire_timers();
+        fire_handler(&bot, TICK, NULL);
+
         FD_ZERO(&rd);
 
 #ifdef _WIN32
@@ -58,7 +69,7 @@ int main()
 		FD_SET(0, &rd);
         FD_SET(fileno(bot.srv_fd), &rd);
 #endif
-        tv.tv_sec  = 120;
+        tv.tv_sec  = 1;
         tv.tv_usec = 0;
 
 #ifdef _WIN32
@@ -90,7 +101,12 @@ int main()
                 return -1;
             }
 
-            irc_raw(&bot, "PING %s", bot.host);
+            if (time(NULL) - last_ping.tv_sec >= 120)
+            {
+                last_ping.tv_sec = time(NULL);
+                irc_raw(&bot, "PING %s", bot.host);
+            }
+
             continue;
         }
 #ifdef _WIN32
@@ -145,6 +161,7 @@ int main()
 #endif
             trespond = time(NULL);
         }
+
     }
 
     return 0;

@@ -23,14 +23,17 @@ void init_mods()
 
 void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
 {
+    
 	char *error = (char *)malloc(sizeof(char *)*1024);
-    strlcpy(mods->modules[mods->count].fname, file, 256);
 #ifdef _WIN32
+    DWORD err;
 
+    strlcpy(mods->modules[mods->count].fname, file, 256);
     mods->modules[mods->count].handle = LoadLibrary(file);
 	if (mods->modules[mods->count].handle == NULL)
 	{
-		sprintf(error, "Error loading %s\n", file);
+        err = GetLastError();
+		sprintf(error, "Error loading %s: %lu", file, err);
 
 		if (strcmp("runtime", stype))
 		{
@@ -39,7 +42,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
 		}
         else if (strcmp(PRIVMSG_CHAN, stype))
         {
-            irc_privmsg(bot, where, error);
+            irc_notice(bot, where, error);
         }
         else
         {
@@ -63,7 +66,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
         }
         else if (strcmp(PRIVMSG_CHAN, stype))
         {
-            irc_privmsg(bot, where, error);
+            irc_notice(bot, where, error);
         }
         else
         {
@@ -89,7 +92,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
         }
         else if (strcmp(PRIVMSG_CHAN, stype))
         {
-            irc_privmsg(bot, where, error);
+            irc_notice(bot, where, error);
         }
         else
         {
@@ -101,7 +104,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
 
 	if (strcmp("runtime", stype))
     {
-        irc_privmsg(bot, where, "Module '%s' loaded.", file);
+        irc_notice(bot, where, "Module '%s' loaded.", file);
     }
     else
     {
@@ -111,6 +114,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
 #else
     void (*mod_init)();
 
+    strlcpy(mods->modules[mods->count].fname, file, 256);
     mods->modules[mods->count].handle = dlopen(file, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
     if (!mods->modules[mods->count].handle)
     {
@@ -123,7 +127,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
         }
         else if (strcmp(PRIVMSG_CHAN, stype))
         {
-            irc_privmsg(bot, where, error);
+            irc_notice(bot, where, error);
         }
         else
         {
@@ -148,7 +152,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
         }
         else if (strcmp(PRIVMSG_CHAN, stype))
         {
-            irc_privmsg(bot, where, error);
+            irc_notice(bot, where, error);
         }
         else
         {
@@ -170,7 +174,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
         }
         else if (strcmp(PRIVMSG_CHAN, stype))
         {
-            irc_privmsg(bot, where, error);
+            irc_notice(bot, where, error);
         }
         else
         {
@@ -189,7 +193,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
         }
         else if (strcmp(PRIVMSG_CHAN, stype))
         {
-            irc_privmsg(bot, where, error);
+            irc_notice(bot, where, error);
         }
         else
         {
@@ -200,7 +204,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
 
     if (strcmp("runtime", stype))
     {
-        irc_privmsg(bot, where, "Module '%s' loaded.", file);
+        irc_notice(bot, where, "Module '%s' loaded.", file);
     }
     else
     {
@@ -229,7 +233,7 @@ void unload_module(struct irc_conn *bot, char *where, char *file)
 
             if (strcmp(PRIVMSG_CHAN, where))
             {
-                irc_privmsg(bot, where, "Module '%s' unloaded.", file);
+                irc_notice(bot, where, "Module '%s' unloaded.", file);
             }
             else
             {
@@ -241,6 +245,8 @@ void unload_module(struct irc_conn *bot, char *where, char *file)
                 mods->modules[i] = mods->modules[i+1];
                 i++;
             }
+
+            mods->count--;
 
             return;
         }

@@ -21,6 +21,7 @@ main:
 	$(CC) $(CFLAGS) $(SRC)/events.c -o $(OBJ)/events.o
 	$(CC) $(CFLAGS) $(SRC)/module.c -o $(OBJ)/module.o
 	$(CC) $(CFLAGS) $(SRC)/channel.c -o $(OBJ)/channel.o
+	$(CC) $(CFLAGS) $(SRC)/timers.c -o $(OBJ)/timers.o
 	$(CC) -o $(EXEC) $(OBJECTS) $(BINFLAGS)
 	@echo "All Done!"
 
