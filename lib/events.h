@@ -34,6 +34,7 @@ struct handler
     struct ev_handler *evhands;
 };
 
+extern struct handler *handlers[512];
 
 void init_events();
 MY_API int add_handler(char *type, void *handler);

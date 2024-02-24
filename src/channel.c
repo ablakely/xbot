@@ -49,9 +49,28 @@ void remove_channel(char *name)
     }
 }
 
+struct user *get_user(char *nick)
+{
+    int i, j;
+
+    for (i = 0; i < chan_count; i++)
+    {
+        for (j = 0; j < channels[i]->user_count; j++)
+        {
+            if (!strcmp(channels[i]->users[j].nick, nick))
+            {
+                return &channels[i]->users[j];
+            }
+        }
+    }
+
+    return NULL;
+}
+
 void add_user_to_channel(char *user, char *host, char *chan)
 {
     int i;
+    struct user *u, *uc;
 
 #ifdef _WIN32
     BOOL is_op, is_voice, is_halfop, is_owner, is_admin;
@@ -107,6 +126,21 @@ void add_user_to_channel(char *user, char *host, char *chan)
     {
         if (!strcmp(channels[i]->name, chan))
         {
+            if (get_user(user) != NULL)
+            {
+                u = get_user(user);
+                u->is_op = is_op | is_owner | is_admin;
+                u->is_voice = is_voice | is_halfop | is_op | is_owner | is_admin;
+                u->is_halfop = is_halfop;
+                u->is_owner = is_owner;
+                u->is_admin = is_admin;
+
+                channels[i]->users[channels[i]->user_count] = *u;
+                channels[i]->user_count++;
+
+                return;
+            }
+
             strlcpy(channels[i]->users[channels[i]->user_count].nick, user, 50);
             strlcpy(channels[i]->users[channels[i]->user_count].host, host, 256);
 
@@ -265,6 +299,43 @@ void set_realname(char *nick, char *real_name)
             }
         }
     }
+}
+
+
+MY_API char *get_user_host(char *nick)
+{
+    int i, j;
+
+    for (i = 0; i < chan_count; i++)
+    {
+        for (j = 0; j < channels[i]->user_count; j++)
+        {
+            if (!strcmp(channels[i]->users[j].nick, nick))
+            {
+                return channels[i]->users[j].host;
+            }
+        }
+    }
+
+    return NULL;
+}
+
+char *get_user_user(char *nick)
+{
+    int i, j;
+
+    for (i = 0; i < chan_count; i++)
+    {
+        for (j = 0; j < channels[i]->user_count; j++)
+        {
+            if (!strcmp(channels[i]->users[j].nick, nick))
+            {
+                return channels[i]->users[j].user;
+            }
+        }
+    }
+
+    return NULL;
 }
 
 #ifdef _WIN32

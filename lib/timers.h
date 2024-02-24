@@ -37,6 +37,8 @@ struct timers
     struct timer *timers;
 };
 
+extern struct timers *timers;;
+
 void init_timers();
 
 MY_API int add_timer(struct irc_conn *bot, int interval, int repeat, void *handler, void *data);

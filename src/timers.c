@@ -6,7 +6,7 @@
 #include "util.h"
 #include "irc.h"
 
-struct timers *timers;;
+struct timers *timers;
 int delete_queue[512];
 
 void init_timers()

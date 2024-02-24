@@ -11,13 +11,8 @@
 #include <ctype.h>
 #endif
 
-struct handler *privmsg_self;
-struct handler *privmsg_chan;
-struct handler *chan_join;
-struct handler *irc_connected;
-
-int handlers_count = 0;
 struct handler *handlers[512];
+int handlers_count = 0;
 
 void init_event_type(char *type)
 {
@@ -94,10 +89,10 @@ MY_API void del_handler(char *type, void *handler)
 void fire_handler(struct irc_conn *bot, char *type, ...)
 {
     va_list args;
-    char *usr = calloc(1, 64);
-    char *host = calloc(1, 512);
-    char *chan = calloc(1, 64);
-    char *text = calloc(1, 512);
+    char *usr;
+    char *host;
+    char *chan;
+    char *text;
     int i, j;
     void (*handler)();
     char *cmd, *arg, *modpath;

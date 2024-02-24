@@ -23,7 +23,6 @@
 #include <sys/select.h>
 #endif
 
-
 static time_t trespond;
 
 int main()
@@ -32,15 +31,15 @@ int main()
     fd_set rd;
     struct irc_conn bot;
     struct timeval tv;
-
     struct timeval last_ping;
 
 
-
     char *p;
-
 	int bytesRecv;
-    
+
+    bot.in = calloc(INBUF_SIZE, sizeof(char));
+    bot.out = calloc(OUTBUF_SIZE, sizeof(char));
+
     last_ping.tv_sec = time(NULL);
 
     init_events();
@@ -54,6 +53,8 @@ int main()
     printf("Connecting to %s...\n", bot.host);
 
     irc_connect(&bot);
+    trespond = time(NULL);
+
     irc_auth(&bot);
 
     for (;;)
@@ -84,7 +85,7 @@ int main()
 		}
 #else
         n = select(fileno(bot.srv_fd) + 1, &rd, 0, 0, &tv);
-		if (n < 0)
+        if (n < 0)
 		{
             if (errno == EINTR)
                 continue;
@@ -112,7 +113,7 @@ int main()
 #ifdef _WIN32
         if (FD_ISSET(bot.srv_fd, &rd))
 		{
-			bytesRecv = recv(bot.srv_fd, bot.in, sizeof(bot.in), 0);
+			bytesRecv = recv(bot.srv_fd, bot.in, INBUF_SIZE, 0);
 			if (bytesRecv == SOCKET_ERROR)
 			{
 				eprint("Error receiving data: %d\n", WSAGetLastError());
@@ -134,7 +135,6 @@ int main()
 
             // split bot.in into lines by \r\n and parse each one
 
-
             while (1)
             {
                 // remove \r
@@ -147,10 +147,12 @@ int main()
                 irc_parse_raw(&bot, bot.in);
                 memmove(bot.in, p + 1, strlen(p + 1) + 1);
             }
+
+            free(p);
 #else
 		if (FD_ISSET(fileno(bot.srv_fd), &rd))
 		{
-            if (fgets(bot.in, sizeof bot.in, bot.srv_fd) == NULL)
+            if (fgets(bot.in, INBUF_SIZE, bot.srv_fd) == NULL)
             {
                 eprint("xbot: remote host closed connection\n");
                 return 0;

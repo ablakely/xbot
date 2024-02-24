@@ -68,6 +68,9 @@ void irc_connect(struct irc_conn *bot)
     struct addrinfo hints;
     struct addrinfo *res, *r;
 
+    bot->in = calloc(60000, sizeof(char));
+    bot->out = calloc(60000, sizeof(char));
+
     memset(&hints, 0, sizeof hints);
     hints.ai_family		= AF_UNSPEC;
     hints.ai_socktype	= SOCK_STREAM;
@@ -142,9 +145,10 @@ void irc_raw(struct irc_conn *bot, char *fmt, ...)
 {
     va_list ap;
 	char outbuf[4096];
+    char *p;
 
     va_start(ap, fmt);
-    vsnprintf(bot->out, sizeof bot->out, fmt, ap);
+    vsnprintf(bot->out, OUTBUF_SIZE, fmt, ap);
     va_end(ap);
 
 	sprintf(outbuf, "%s\r\n", bot->out);
@@ -175,6 +179,29 @@ void irc_part(struct irc_conn *bot, char *chan, char *reason)
     irc_raw(bot, "PART %s :%s", chan, reason);
 }
 
+void irc_ban(struct irc_conn *bot, char *channel, char *user)
+{
+    char *host = get_user_host(user);
+    char *un   = get_user_user(user);
+
+    irc_raw(bot, "MODE %s +b *!%s@%s", channel, un, host);
+}
+
+void irc_kick(struct irc_conn *bot, char *channel, char *user, char *reason)
+{
+    if (!reason)
+    {
+        reason = "";
+    }
+
+    irc_raw(bot, "KICK %s %s :%s", channel, user, reason);
+}
+
+void irc_mode(struct irc_conn *bot, char *channel, char *mode)
+{
+    irc_raw(bot, "MODE %s %s", channel, mode);
+}
+
 void irc_ctcp(struct irc_conn *bot, char *to, char *fmt, ...)
 {
     char msg_[4096];
@@ -192,8 +219,6 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
     char *user, *host, *par, *text, *chan, *nick, *nicks, *tmp;
     user = bot->host;
 
-    text = calloc(1, strlen(raw) + 1);
-	
     if (!raw || !*raw)
     {
         return;
@@ -334,13 +359,19 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
 
         while (nick)
         {
-            add_user_to_channel(nick, "", chan);
-
             tmp = nick;
             if (nick[0] == '@' || nick[0] == '+' || nick[0] == '%' || nick[0] == '~' || nick[0] == '&')
             {
                 tmp++;
             }
+
+            if (get_user(tmp))
+            {
+                nick = strtok(NULL, " ");
+                continue;
+            }
+
+            add_user_to_channel(nick, "", chan);
 
             irc_raw(bot, "WHO %s", tmp);
             nick = strtok(NULL, " ");
@@ -376,4 +407,5 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
             fire_handler(bot, NICK_MYSELF, user, text);
         }
     }
+
 }

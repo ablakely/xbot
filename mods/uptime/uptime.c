@@ -10,7 +10,6 @@
 #ifdef _WIN32
 #define BUFFER_SIZE 512
 #include <windows.h>
-DWORD startTick;
 
 void parseUptime(const char *output, struct irc_conn *bot, const char *where) {
     const char *keyword = "Statistics since ";
@@ -140,12 +139,13 @@ char *executeCommand(const char *command)
 MY_API void up(struct irc_conn *bot, char *user, char *host, char *chan, char *text)
 {
 #ifdef _WIN32
-    const char *command = "net statistics server";
-    char *output = executeCommand(command);
+    char *output;
 
     if (!strcmp(text, "!uptime"))
     {
+        output = executeCommand("net statistics server");
         parseUptime(output, bot, chan);
+
         free(output);
     }
 #else
@@ -165,10 +165,6 @@ MY_API void up(struct irc_conn *bot, char *user, char *host, char *chan, char *t
 
 MY_API void mod_init()
 {
-#ifdef _WIN32
-    startTick = GetTickCount();
-#endif
-
     register_module("uptime", "Aaron Blakely", "v0.1", "Uptime module");
     printf("installing up handler\n");
 	add_handler(PRIVMSG_CHAN, up);

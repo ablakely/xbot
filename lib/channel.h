@@ -50,6 +50,8 @@ struct channel
     struct user *users;
 };
 
+extern struct channel *channels[60];
+
 void add_channel(char *name);
 void remove_channel(char *name);
 void add_user_to_channel(char *user, char *host, char *chan);
@@ -61,6 +63,10 @@ void update_server(char *nick, char *server);
 void update_realname(char *nick, char *real_name);
 void user_quit(char *nick);
 void set_realname(char *nick, char *real_name);
+struct user *get_user(char *nick);
+
+MY_API char *get_user_host(char *nick);
+MY_API char *get_user_user(char *nick);
 
 #ifdef _WIN32
 MY_API BOOL is_op(char *chan, char *nick);

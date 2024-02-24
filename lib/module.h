@@ -32,6 +32,8 @@ struct mods {
     struct module *modules;
 };
 
+extern struct mods *mods;
+
 void init_mods();
 void load_module(struct irc_conn *bot, char *where, char *stype, char *file);
 void unload_module(struct irc_conn *bot, char *where, char *file);

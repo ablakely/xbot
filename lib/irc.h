@@ -13,6 +13,8 @@
 #include <winsock2.h>
 #endif
 
+#define OUTBUF_SIZE 60000
+#define INBUF_SIZE 60000
 
 struct irc_conn
 {
@@ -29,8 +31,8 @@ struct irc_conn
     char real_name[512];
 
     // I/O Buffers
-    char out[4096];
-    char in[4096];
+    char *out;
+    char *in;
 };
 
 typedef struct handler event_handler;
@@ -53,7 +55,9 @@ MY_API void irc_privmsg(struct irc_conn *bot, char *to, char *fmt, ...);
 MY_API void irc_raw(struct irc_conn *bot, char *fmt, ...);
 MY_API void irc_join(struct irc_conn *bot, char *channel);
 MY_API void irc_part(struct irc_conn *bot, char *channel, char *reason);
-
+MY_API void irc_ban(struct irc_conn *bot, char *channel, char *nick);
+MY_API void irc_kick(struct irc_conn *bot, char *channel, char *user, char *reason);
+MY_API void irc_mode(struct irc_conn *bot, char *channel, char *mode);
 
 void irc_parse_raw(struct irc_conn *bot, char *raw);
 
