@@ -68,9 +68,6 @@ void irc_connect(struct irc_conn *bot)
     struct addrinfo hints;
     struct addrinfo *res, *r;
 
-    bot->in = calloc(60000, sizeof(char));
-    bot->out = calloc(60000, sizeof(char));
-
     memset(&hints, 0, sizeof hints);
     hints.ai_family		= AF_UNSPEC;
     hints.ai_socktype	= SOCK_STREAM;
