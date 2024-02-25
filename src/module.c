@@ -13,6 +13,7 @@
 #endif
 
 struct mods *mods;
+struct irc_conn *instance;
 
 void init_mods()
 {
@@ -303,4 +304,14 @@ MY_API void unregister_module(char *name)
 MY_API struct mods *get_mods()
 {
     return mods;
+}
+
+MY_API struct irc_conn *get_bot()
+{
+    return instance;
+}
+
+MY_API void set_bot(struct irc_conn *b)
+{
+    instance = b;
 }

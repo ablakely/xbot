@@ -42,6 +42,7 @@ int main()
 
     last_ping.tv_sec = time(NULL);
 
+    set_bot(&bot);
     init_events();
     init_timers();
     init_mods();
