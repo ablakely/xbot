@@ -58,6 +58,8 @@ MY_API void chanprivmsg_handler(struct irc_conn *bot, char *user, char *host, ch
 {
     lua_fire_handlers(PRIVMSG_CHAN, user, host, chan, text);
     lua_eval(bot, user, host, chan, text);
+    lua_load_script(bot, user, host, chan, text);
+    lua_unload_script(bot, user, host, chan, text);
 }
 
 MY_API void selfprivmsg_handler(struct irc_conn *bot, char *user, char *host, const char *text)

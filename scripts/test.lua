@@ -6,7 +6,7 @@ DESCRIPTION = "A simple hello world script for xbot"
 local handlers = {}
 
 function hi(nick, host, chan, text)
-    privmsg(chan, "Hello, " .. nick .. "!")
+    privmsg(chan, "Hello, " .. nick .. " from test.lua!")
 end
 
 function load()
@@ -16,6 +16,7 @@ function load()
 end
 
 function unload()
+    privmsg("#lobby", "Unloading test.lua")
     for i, v in ipairs(handlers) do
         del_handler(v[1], v[2])
     end

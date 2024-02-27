@@ -14,6 +14,7 @@ struct lua_script
     char description[256];
 
     char fname[256];
+    int unload;
 };
 
 struct lua_event
@@ -70,5 +71,7 @@ MY_API void quit_handler(struct irc_conn *bot, char *user, char *host, const cha
 // lua.c
 void lua_setvar(char *name, char *value);
 MY_API void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);
+MY_API void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);
+MY_API void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);
 
 #endif
