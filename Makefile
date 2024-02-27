@@ -30,6 +30,8 @@ mods: $(MODS_DIR)
 $(MODS_DIR):
 	$(MAKE) -C $@
 
+all: main mods
+
 clean:
 	@rm -rf build $(EXEC)
 	@rm -rf mods/*.so
