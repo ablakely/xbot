@@ -4,16 +4,24 @@
 #include <string.h>
 #include <stdlib.h>
 
+int block = 0;
+
 void lua_init_events()
 {
-    lua_register(lua.L, "add_handler", lua_add_handler);
-    lua_register(lua.L, "del_handler", lua_del_handler);
+    lua_register(lua.L, "_add_handler", lua_add_handler);
+    lua_register(lua.L, "_del_handler", lua_del_handler);
 }
 
 int lua_add_handler(lua_State *L)
 {
     char *event;
     int lreg;
+
+    if (block)
+    {
+        // return error
+        return !LUA_OK;
+    }
 
     if (lua_gettop(L) < 2)
     {
@@ -118,6 +126,8 @@ void lua_fire_handlers(char *event, ...)
     int i;
     va_list args;
 
+    printf("lua_fire_handlers: %s\n", event);
+
     char *user, *host, *chan, *text;
 
     for (i = 0; i < lua.event_count; i++)
@@ -137,6 +147,7 @@ void lua_fire_handlers(char *event, ...)
                 text = va_arg(args, char *);
 
                 printf("dbug: %s %s %s %s\n", user, host, chan, text);
+                printf("dbug: %s %d %d\n", lua.events[i].event, lua.events[i].lreg, lua.event_count);
 
                 lua_callfunc(lua.events[i].lreg, 4, user, host, chan, text);
             }

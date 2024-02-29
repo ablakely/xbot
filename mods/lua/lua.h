@@ -34,6 +34,13 @@ struct lua_interp
     struct lua_event *events;
 };
 
+struct script_list
+{
+    int count;
+    char *scripts[512];
+};
+
+extern int block;
 
 extern struct lua_interp lua;
 extern struct irc_conn *instance;
@@ -70,6 +77,10 @@ MY_API void quit_handler(struct irc_conn *bot, char *user, char *host, const cha
 
 // lua.c
 void lua_setvar(char *name, char *value);
+int append_script(char *fname);
+int remove_script(char *fname);
+struct script_list get_scripts();
+
 MY_API void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);
 MY_API void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);
 MY_API void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);

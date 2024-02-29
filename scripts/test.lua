@@ -1,23 +1,25 @@
-NAME = "hello"
-VERSION = "v0.5"
-AUTHOR = "Aaron Blakely"
-DESCRIPTION = "A simple hello world script for xbot"
+local NAME = "hello"
+local VERSION = "v0.5"
+local AUTHOR = "Aaron Blakely"
+local DESCRIPTION = "A simple hello world script for xbot"
 
-local handlers = {}
+function test(nick, host, chan, text)
+    -- check if text contains "hello"
 
-function hi(nick, host, chan, text)
-    privmsg(chan, "Hello, " .. nick .. " from test.lua!")
+
+    if string.find(text, "hello") then
+        privmsg(chan, "Hello, " .. nick .. " from test.lua!!!")
+    end
 end
 
 function load()
     -- register_script(NAME, VERSION, AUTHOR, DESCRIPTION)
 
-    table.insert(handlers, {PRIVMSG_CHAN, add_handler(PRIVMSG_CHAN, hi)})
+    add_handler(PRIVMSG_CHAN, test)
 end
 
 function unload()
-    privmsg("#lobby", "Unloading test.lua")
-    for i, v in ipairs(handlers) do
-        del_handler(v[1], v[2])
-    end
+    -- unregister_script(NAME)
+
+    del_handler(PRIVMSG_CHAN, test)
 end
