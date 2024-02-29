@@ -5,9 +5,6 @@
 
 local handlerstore = {}
 
-function load() end
-function unload() end
-
 function add_handler(type, func)
     local ret = _add_handler(type, func)
 
