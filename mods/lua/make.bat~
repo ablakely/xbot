@@ -1,0 +1,5 @@
+cl /I "..\..\lib" /I "..\..\include\libconfig-1.7.3\lib" /I "..\..\include\lua5.3\include" /c ..\..\Debug\xbot.lib ..\..\include\libconfig.lib ..\..\include\lua5.3\lua53.lib events.c 
+cl /I "..\..\lib" /I "..\..\include\libconfig-1.7.3\lib" /I "..\..\include\lua5.3\include" /c  ..\..\Debug\xbot.lib ..\..\include\libconfig.lib ..\..\include\lua5.3\lua53.lib handlers.c 
+cl /I "..\..\lib" /I "..\..\include\libconfig-1.7.3\lib" /I "..\..\include\lua5.3\include" /c  ..\..\Debug\xbot.lib ..\..\include\libconfig.lib ..\..\include\lua5.3\lua53.lib wrappers.c
+cl /I "..\..\lib" /I "..\..\include\libconfig-1.7.3\lib" /I "..\..\include\lua5.3\include" /c  ..\..\Debug\xbot.lib ..\..\include\libconfig.lib ..\..\include\lua5.3\lua53.lib lua.c 
+link /DLL /out:..\lua.dll events.obj handlers.obj wrappers.obj lua.obj ..\..\Debug\xbot.lib ..\..\include\libconfig.lib ..\..\include\lua5.3\lua53.lib

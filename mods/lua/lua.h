@@ -1,9 +1,17 @@
+#define MY_DLL_EXPORTS 1
+
 #ifndef LUA_H
 #define LUA_H
 
+#ifdef _WIN32
+#include <lua.h>
+#include <lauxlib.h>
+#include <lualib.h>
+#else
 #include <lua5.3/lua.h>
 #include <lua5.3/lauxlib.h>
 #include <lua5.3/lualib.h>
+#endif
 #include "irc.h"
 
 struct lua_script
@@ -80,6 +88,8 @@ void lua_setvar(char *name, char *value);
 int append_script(char *fname);
 int remove_script(char *fname);
 struct script_list get_scripts();
+MY_API void mod_init();
+MY_API void mod_unload();
 
 MY_API void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);
 MY_API void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text);

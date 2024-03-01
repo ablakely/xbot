@@ -311,7 +311,7 @@ MY_API struct irc_conn *get_bot()
     return instance;
 }
 
-MY_API void set_bot(struct irc_conn *b)
+void set_bot(struct irc_conn *b)
 {
     instance = b;
 }

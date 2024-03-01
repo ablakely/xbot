@@ -1,5 +1,3 @@
-#define MY_DLL_EXPORTS 1
-
 #include "util.h"
 #include "irc.h"
 #include "events.h"
@@ -8,7 +6,11 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifndef _WIN32
+#define MY_DLL_EXPORTS 1
 #include <libgen.h>
+#endif
 
 #include "lua.h"
 
@@ -19,13 +21,14 @@ char *scriptsfile = "./mods/lua/scripts";
 
 int append_script(char *fname)
 {
+    int i;
     FILE *fp;
     char *buf = (char *)malloc(sizeof(char *) * 500);
 
     // check if the file is already in the list
     struct script_list list = get_scripts();
 
-    for (int i = 0; i < list.count; i++)
+    for (i = 0; i < list.count; i++)
     {
         if (strcmp(list.scripts[i], fname) == 0)
         {
@@ -50,7 +53,7 @@ int append_script(char *fname)
 
 int remove_script(char *fname)
 {
-    FILE *fp;
+    FILE *fp, *tmp;
     char *buf = (char *)malloc(sizeof(char *) * 500);
     char *tmpfile = "./mods/lua/scripts.tmp";
 
@@ -60,7 +63,7 @@ int remove_script(char *fname)
         return -1;
     }
 
-    FILE *tmp = fopen(tmpfile, "w");
+    tmp = fopen(tmpfile, "w");
 
     while (fgets(buf, 500, fp) != NULL)
     {
@@ -113,7 +116,7 @@ struct script_list get_scripts()
     return list;
 }
 
-MY_API void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const char *text)
+void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const char *text)
 {
     int res;
 
@@ -145,7 +148,7 @@ MY_API void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, c
     block = 0;
 }
 
-MY_API void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text)
+void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text)
 {
     char *name;
     char *script;
@@ -259,8 +262,9 @@ MY_API void lua_load_script(struct irc_conn *bot, char *user, char *host, char *
     free(buf);
 }
 
-MY_API void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text)
+void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan, const char *text)
 {
+    int i;
     char *name;
     char *script;
     char *buf = (char *)malloc(sizeof(char *) * 500);
@@ -272,7 +276,7 @@ MY_API void lua_unload_script(struct irc_conn *bot, char *user, char *host, char
 
         irc_privmsg(bot, chan, "Unloading %s", buf);
 
-        for (int i = 0; i < lua.script_count; i++)
+        for (i = 0; i < lua.script_count; i++)
         {
             if (strcmp(lua.scripts[i].fname, buf) == 0)
             {
@@ -318,8 +322,9 @@ void lua_setvar(char *name, char *value)
     lua_setglobal(lua.L, name);
 }
 
-MY_API void mod_init()
+void mod_init()
 {
+    int i;
     char *buf = (char *)malloc(sizeof(char *) * 500);
     struct script_list list = get_scripts();
     instance = get_bot();
@@ -351,7 +356,7 @@ MY_API void mod_init()
         return;
     }
 
-    for (int i = 0; i < list.count; i++)
+    for (i = 0; i < list.count; i++)
     {
         printf("Loading %s\n", list.scripts[i]);
 
@@ -364,7 +369,7 @@ MY_API void mod_init()
     free(buf);
 }
 
-MY_API void mod_unload()
+void mod_unload()
 {
     lua_close(lua.L);
 

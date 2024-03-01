@@ -18,6 +18,10 @@ void eprint(char *fmt, ...);
 void strlcpy(char *to, const char *from, int len);
 #endif
 
+#ifdef _WIN32
+char *basename(char *path);
+#endif
+
 char *skip(char *s, char c);
 void trim(char *s);
 

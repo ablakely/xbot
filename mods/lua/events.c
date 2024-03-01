@@ -1,6 +1,6 @@
+#include "util.h"
 #include "lua.h"
 #include "events.h"
-#include <lua5.3/lua.h>
 #include <string.h>
 #include <stdlib.h>
 
@@ -96,11 +96,10 @@ void lua_callfunc(int lreg, int argc, ...)
 {
     int i;
     va_list args;
-
-    va_start(args, argc);
-
     lua_State *L = lua.L;
     int stackSize = lua_gettop(L);
+
+    va_start(args, argc);
 
     lua_rawgeti(L, LUA_REGISTRYINDEX, lreg);
 
@@ -125,10 +124,9 @@ void lua_fire_handlers(char *event, ...)
 {
     int i;
     va_list args;
+    char *user, *host, *chan, *text;
 
     printf("lua_fire_handlers: %s\n", event);
-
-    char *user, *host, *chan, *text;
 
     for (i = 0; i < lua.event_count; i++)
     {
