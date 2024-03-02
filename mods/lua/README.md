@@ -2,35 +2,35 @@
 
 ## Lua Commands
 
-### `raw`(`message`: string)
+### `raw(message)`
 
 Sends a raw message to the server.
 
-### `privmsg`(`to`: string, `message`: string)
+### `privmsg(to, message)`
 
 Sends a message to a channel or user.
 
-### `notice`(`to`: string, `message`: string)
+### `notice(to, message)`
 
 Sends a notice to a channel or user.
 
-### `join`(`channel`: string)
+### `join(channel)`
 
 Joins a channel.
 
-### `part`(`channel`: string)
+### `part(channel, reason)`
 
 Leaves a channel.
 
-### `kick`(`channel`: string, `user`: string, `reason`: string)
+### `kick(channel, user, reason)`
 
 Kicks a user from a channel. Reason is optional.
 
-### `mode`(`channel`: string, `mode`: string, `target`: string)
+### `mode(channel, mode, target)`
 
 Sets a mode on a channel.
 
-### `ctcp`(`to`: string, `message`: string)
+### `ctcp(to, message)`
 
 Sends a CTCP message to a channel or user.
 
