@@ -58,6 +58,7 @@ MY_API void irc_part(struct irc_conn *bot, char *channel, char *reason);
 MY_API void irc_ban(struct irc_conn *bot, char *channel, char *nick);
 MY_API void irc_kick(struct irc_conn *bot, char *channel, char *user, char *reason);
 MY_API void irc_mode(struct irc_conn *bot, char *channel, char *mode);
+MY_API void irc_ctcp(struct irc_conn *bot, char *to, char *fmt, ...);
 
 void irc_parse_raw(struct irc_conn *bot, char *raw);
 

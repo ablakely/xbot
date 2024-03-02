@@ -63,6 +63,13 @@ void lua_fire_handlers(char *event, ...);
 void lua_init_wrappers();
 void raw_wrapper(lua_State *L);
 void privmsg_wrapper(lua_State *L);
+void notice_wrapper(lua_State *L);
+void join_wrapper(lua_State *L);
+void part_wrapper(lua_State *L);
+void ban_wrapper(lua_State *L);
+void kick_wrapper(lua_State *L);
+void mode_wrapper(lua_State *L);
+void ctcp_wrapper(lua_State *L);
 
 // handlers.c
 void lua_init_handlers();
