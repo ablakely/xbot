@@ -17,102 +17,106 @@
 struct lua_interp lua; 
 struct irc_conn *instance;
 
-char *scriptsfile = "./mods/lua/scripts";
-
 int append_script(char *fname)
 {
-    int i;
-    FILE *fp;
-    char *buf = (char *)malloc(sizeof(char *) * 500);
+    char *scriptlist = db_get_hash_char(get_bot_db(), "lua.scripts");
+    char *newlist = (char *)malloc(sizeof(char) * 500);
+    char *p = scriptlist;
 
-    // check if the file is already in the list
-    struct script_list list = get_scripts();
-
-    for (i = 0; i < list.count; i++)
+    if (scriptlist == NULL)
     {
-        if (strcmp(list.scripts[i], fname) == 0)
-        {
-            free(buf);
-            return 0;
-        }
+        db_set_hash_char(get_bot_db(), "lua.scripts", fname);
+        db_write(get_bot_db(), instance->db_file);
+        return 0;
     }
 
-    if ((fp = fopen(scriptsfile, "a")) == NULL)
-    {
-        free(buf);
-        return -1;
-    }
+    sprintf(newlist, "%s,%s", scriptlist, fname);
+    printf("newlist: %s\n", newlist);
 
-    sprintf(buf, "%s\n", fname);
-    fputs(buf, fp);
-    fclose(fp);
+    db_set_hash_char(get_bot_db(), "lua.scripts", newlist);
 
-    free(buf);
+    db_write(get_bot_db(), instance->db_file);
+
+    free(newlist);
+
     return 0;
 }
 
 int remove_script(char *fname)
 {
-    FILE *fp, *tmp;
-    char *buf = (char *)malloc(sizeof(char *) * 500);
-    char *tmpfile = "./mods/lua/scripts.tmp";
+    char *scriptlist = db_get_hash_char(get_bot_db(), "lua.scripts");
+    char *newlist = (char *)malloc(sizeof(char) * 500);
+    char *p = scriptlist;
+    char *q = newlist;
+    int len = strlen(fname);
+    int found = 0;
 
-    if ((fp = fopen(scriptsfile, "r")) == NULL)
+    if (scriptlist == NULL)
     {
-        free(buf);
-        return -1;
+        return 0;
     }
 
-    tmp = fopen(tmpfile, "w");
-
-    while (fgets(buf, 500, fp) != NULL)
+    while (*p != '\0')
     {
-        if (strcmp(buf, fname) != 0)
+        if (strncmp(p, fname, len) == 0)
         {
-            fputs(buf, tmp);
+            p = skip(p, ',');
+            found = 1;
+            continue;
         }
+
+        *q = *p;
+        p++;
+        q++;
     }
 
-    fclose(fp);
-    fclose(tmp);
+    if (found == 0)
+    {
+        return 0;
+    }
 
-    remove(scriptsfile);
-    rename(tmpfile, scriptsfile);
+    *q = '\0';
 
-    free(buf);
+    // remove trailing , if it exists
+
+    if (newlist[strlen(newlist) - 1] == ',')
+    {
+        newlist[strlen(newlist) - 1] = '\0';
+    }
+
+    db_set_hash_char(get_bot_db(), "lua.scripts", newlist);
+    db_write(get_bot_db(), instance->db_file);
+
+    free(newlist);
+
     return 0;
 }
 
 struct script_list get_scripts()
 {
-    FILE *fp;
-    char *buf = (char *)malloc(sizeof(char *) * 500);
-    struct script_list list;
+    char *scriptlist = db_get_hash_char(get_bot_db(), "lua.scripts");
+    printf("dbug: scriptlist: %s\n", scriptlist);
+
+    // dbug: scriptlist: hello.lua,test.lua,youtube.lua
+
+    struct script_list list = {0};
+    char *p = scriptlist;
     int i = 0;
 
-    if ((fp = fopen(scriptsfile, "r")) == NULL)
+    if (scriptlist == NULL)
     {
-        free(buf);
-
-        list.count = 0;
         return list;
     }
 
-    while (fgets(buf, 500, fp) != NULL)
+    while (*p != '\0')
     {
-        list.scripts[i] = (char *)malloc(sizeof(char *) * 150);
-        strlcpy(list.scripts[i], buf, 150);
-
-        // remove newline
-        list.scripts[i][strlen(list.scripts[i]) - 1] = '\0';
-
-
+        list.scripts[i] = p;
+        p = skip(p, ',');
         i++;
     }
 
     list.count = i;
 
-    free(buf);
     return list;
 }
 
@@ -326,8 +330,10 @@ void mod_init()
 {
     int i;
     char *buf = (char *)malloc(sizeof(char *) * 500);
-    struct script_list list = get_scripts();
+    struct script_list list = {0};
+
     instance = get_bot();
+    list = get_scripts();
 
     lua.scripts = calloc(512, sizeof(struct lua_script));
     lua.events  = calloc(1024, sizeof(struct lua_event));
@@ -360,9 +366,54 @@ void mod_init()
     {
         printf("Loading %s\n", list.scripts[i]);
 
-        sprintf(buf, "!load %s", list.scripts[i]);
+        sprintf(buf, "./scripts/%s", list.scripts[i]);
+        strlcpy(lua.scripts[lua.script_count].fname, buf, 150);
 
-        lua_load_script(instance, "lua", "localhost", "-stdio-", buf);
+        if (luaL_loadfile(lua.L, buf) != LUA_OK)
+        {
+            printf("Error loading lua script: %s\n", lua_tostring(lua.L, -1));
+            continue;
+        }
+
+        // execute the script
+        if (lua_pcall(lua.L, 0, 0, 0) != LUA_OK)
+        {
+            printf("Error executing lua script: %s\n", lua_tostring(lua.L, -1));
+            continue;
+        }
+
+        // get a ref to unload function if it exists and store it with luaL_ref
+        lua_getglobal(lua.L, "unload");
+
+        if (lua_isfunction(lua.L, -1))
+        {
+            lua.scripts[lua.script_count].unload = luaL_ref(lua.L, LUA_REGISTRYINDEX);
+            printf("dbg: unload ref: %d\n", lua.scripts[lua.script_count].unload);
+        }
+        else
+        {
+            lua.scripts[lua.script_count].unload = -1;
+            printf("No unload() function in %s\n", list.scripts[i]);
+        }
+
+        // call the load function if it exists
+        lua_getglobal(lua.L, "load");
+
+        if (lua_isfunction(lua.L, -1))
+        {
+            if (lua_pcall(lua.L, 0, 0, 0) != LUA_OK)
+            {
+                printf("Error calling load() in %s: %s\n", buf, lua_tostring(lua.L, -1));
+                continue;
+            }
+
+            lua.script_count++;
+            printf("Loaded %s\n", list.scripts[i]);
+        }
+        else
+        {
+            printf("Error: No load() function in %s\n", buf);
+        }
     }
 
     printf("Lua module loaded\n");

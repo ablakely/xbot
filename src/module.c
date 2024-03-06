@@ -14,6 +14,7 @@
 
 struct mods *mods;
 struct irc_conn *instance;
+struct db_table *dbinstance;
 
 void init_mods()
 {
@@ -314,4 +315,14 @@ MY_API struct irc_conn *get_bot()
 void set_bot(struct irc_conn *b)
 {
     instance = b;
+}
+
+void set_bot_db(struct db_table *db)
+{
+    dbinstance = db;
+}
+
+MY_API struct db_table *get_bot_db()
+{
+    return dbinstance;
 }

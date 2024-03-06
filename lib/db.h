@@ -7,7 +7,8 @@
 enum db_type
 {
     DB_TYPE_CHAR,
-    DB_TYPE_INT
+    DB_TYPE_INT,
+    DB_TYPE_FLOAT
 };
 
 struct db_hash
@@ -29,17 +30,21 @@ struct db_table
     struct db_hash *hashes;
 };
 
-int write_db(struct db_table *db, char *fname);
-struct db_table *read_db(char *fname);
+int db_write(struct db_table *db, char *fname);
+struct db_table *db_read(char *fname);
 
-int db_add_hash(struct db_table *db, char *key, void *value);
-int db_add_hash_char(struct db_table *db, char *key, char *value);
-int db_add_hash_int(struct db_table *db, char *key, int value);
+int db_set_hash(struct db_table *db, char *key, void *value);
+int db_set_hash_char(struct db_table *db, char *key, char *value);
+int db_set_hash_int(struct db_table *db, char *key, int value);
+int db_set_hash_float(struct db_table *db, char *key, float value);
 
 int db_del_hash(struct db_table *db, char *key);
 
-void *get_hash(struct db_table *db, char *key);
-char *get_hash_char(struct db_table *db, char *key);
-int get_hash_int(struct db_table *db, char *key);
+void *db_get_hash(struct db_table *db, char *key);
+int db_get_hash_type(struct db_table *db, char *key);
+
+char *db_get_hash_char(struct db_table *db, char *key);
+int db_get_hash_int(struct db_table *db, char *key);
+float db_get_hash_float(struct db_table *db, char *key);
 
 #endif

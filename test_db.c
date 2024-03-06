@@ -27,8 +27,9 @@ int main()
     // write some data if db is empty
     if (db->count == 0)
     {
-        db_add_hash_char(db, "lua.scripts", "hello.lua,test.lua,youtube.lua");
-        db_add_hash_int(db, "lua.scriptcount", 2);
+        db_set_hash_char(db, "lua.scripts", "hello.lua,test.lua,youtube.lua");
+        db_set_hash_int(db, "lua.scriptcount", 2);
+        db_set_hash_float(db, "lua.version", 5.1);
         write_db(db, FNAME);
 
         return 0;
@@ -40,7 +41,11 @@ int main()
         {
             printf("Key: %s, Value: %d\n", db->hashes[i].key, get_hash_int(db, db->hashes[i].key));
         }
-        else
+        else if (db->hashes[i].type == DB_TYPE_FLOAT)
+        {
+            printf("Key: %s, Value: %f\n", db->hashes[i].key, get_hash_float(db, db->hashes[i].key));
+        }
+        else if (db->hashes[i].type == DB_TYPE_CHAR)
         {
             printf("Key: %s, Value: %s\n", db->hashes[i].key, get_hash_char(db, db->hashes[i].key));
         }

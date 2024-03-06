@@ -46,29 +46,36 @@ int main()
     last_ping.tv_sec = time(NULL);
 
     set_bot(&bot);
+
     init_events();
     init_timers();
     init_mods();
-
     // Read the config
+
     bot = read_config(bot, "xbot.cfg");
 
     // check if the db exists, if not, create it
     if (access(bot.db_file, F_OK) == -1)
     {
-        printf("Creating db\n");
+        printf("Creating database file: %s\n", bot.db_file);
         bot.db = (struct db_table *)malloc(sizeof(struct db_table));
         memset(bot.db, 0, sizeof(struct db_table));
+        set_bot_db(bot.db);
 
         bot.db->count = 0;
         bot.db->hashes = NULL;
 
-        write_db(bot.db, bot.db_file);
+        db_write(bot.db, bot.db_file);
     }
     else
     {
-        bot.db = read_db(bot.db_file);
+        printf("Reading database file: %s\n", bot.db_file);
+        bot.db = db_read(bot.db_file);
+        set_bot_db(bot.db);
     }
+
+    // run autoload
+    run_autoload(&bot);
 
     // Connect to the server
     printf("Connecting to %s...\n", bot.host);
