@@ -9,6 +9,7 @@
 
 #include <stdio.h>
 
+#include "util.h"
 #include "db.h"
 
 #ifdef _WIN32
@@ -41,16 +42,6 @@ struct irc_conn
 };
 
 typedef struct handler event_handler;
-
-#ifdef _WIN32
-#ifdef MY_DLL_EXPORTS
-#define MY_API __declspec(dllexport)
-#else
-#define MY_API __declspec(dllimport)
-#endif
-#else
-#define MY_API
-#endif
 
 void irc_connect(struct irc_conn *bot);
 void irc_auth(struct irc_conn *bot);

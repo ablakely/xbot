@@ -12,17 +12,27 @@
 #define false FALSE
 #endif
 
+#ifdef _WIN32
+#ifdef MY_DLL_EXPORTS
+#define MY_API __declspec(dllexport)
+#else
+#define MY_API __declspec(dllimport)
+#endif
+#else
+#define MY_API
+#endif
+
 void eprint(char *fmt, ...);
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 38)) || defined(_WIN32)
-void strlcpy(char *to, const char *from, int len);
+MY_API void strlcpy(char *to, const char *from, int len);
 #endif
 
 #ifdef _WIN32
-char *basename(char *path);
+MY_API char *basename(char *path);
 #endif
 
-char *skip(char *s, char c);
-void trim(char *s);
+MY_API char *skip(char *s, char c);
+MY_API void trim(char *s);
 
 #endif

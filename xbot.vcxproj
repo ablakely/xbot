@@ -105,6 +105,7 @@
   <ItemGroup>
     <ClInclude Include="lib\channel.h" />
     <ClInclude Include="lib\config.h" />
+    <ClInclude Include="lib\db.h" />
     <ClInclude Include="lib\events.h" />
     <ClInclude Include="lib\irc.h" />
     <ClInclude Include="lib\module.h" />
@@ -114,6 +115,7 @@
   <ItemGroup>
     <ClCompile Include="src\channel.c" />
     <ClCompile Include="src\config.c" />
+    <ClCompile Include="src\db.c" />
     <ClCompile Include="src\events.c" />
     <ClCompile Include="src\irc.c" />
     <ClCompile Include="src\main.c" />

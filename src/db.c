@@ -10,6 +10,7 @@ int db_write(struct db_table *db, char *fname)
 {
     FILE *fp;
     int i;
+    char *fullpath;
 
     if ((fp = fopen(fname, "wb")) == NULL)
     {
@@ -18,6 +19,15 @@ int db_write(struct db_table *db, char *fname)
 
     db->db_magic = DB_MAGIC;
     db->db_ver = DB_VER;
+
+    // get the full path to the db file
+#ifdef _WIN32
+    fullpath = _fullpath(NULL, fname, 0);
+#else
+    fullpath = realpath(fname, NULL);
+#endif
+
+    printf("Writing db to file: %s\n", fullpath);
 
     // write the header
     fwrite(db, sizeof(struct db_table), 1, fp);

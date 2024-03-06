@@ -1,6 +1,8 @@
 #ifndef DB_H
 #define DB_H
 
+#include "util.h"
+
 #define DB_MAGIC 0xdeadbeef
 #define DB_VER 0x10
 
@@ -30,21 +32,21 @@ struct db_table
     struct db_hash *hashes;
 };
 
-int db_write(struct db_table *db, char *fname);
-struct db_table *db_read(char *fname);
+MY_API int db_write(struct db_table *db, char *fname);
+MY_API struct db_table *db_read(char *fname);
 
-int db_set_hash(struct db_table *db, char *key, void *value);
-int db_set_hash_char(struct db_table *db, char *key, char *value);
-int db_set_hash_int(struct db_table *db, char *key, int value);
-int db_set_hash_float(struct db_table *db, char *key, float value);
+MY_API int db_set_hash(struct db_table *db, char *key, void *value);
+MY_API int db_set_hash_char(struct db_table *db, char *key, char *value);
+MY_API int db_set_hash_int(struct db_table *db, char *key, int value);
+MY_API int db_set_hash_float(struct db_table *db, char *key, float value);
 
-int db_del_hash(struct db_table *db, char *key);
+MY_API int db_del_hash(struct db_table *db, char *key);
 
-void *db_get_hash(struct db_table *db, char *key);
-int db_get_hash_type(struct db_table *db, char *key);
+MY_API void *db_get_hash(struct db_table *db, char *key);
+MY_API int db_get_hash_type(struct db_table *db, char *key);
 
-char *db_get_hash_char(struct db_table *db, char *key);
-int db_get_hash_int(struct db_table *db, char *key);
-float db_get_hash_float(struct db_table *db, char *key);
+MY_API char *db_get_hash_char(struct db_table *db, char *key);
+MY_API int db_get_hash_int(struct db_table *db, char *key);
+MY_API float db_get_hash_float(struct db_table *db, char *key);
 
 #endif

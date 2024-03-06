@@ -95,10 +95,6 @@ int remove_script(char *fname)
 struct script_list get_scripts()
 {
     char *scriptlist = db_get_hash_char(get_bot_db(), "lua.scripts");
-    printf("dbug: scriptlist: %s\n", scriptlist);
-
-    // dbug: scriptlist: hello.lua,test.lua,youtube.lua
-
     struct script_list list = {0};
     char *p = scriptlist;
     int i = 0;

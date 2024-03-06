@@ -11,7 +11,7 @@
 #include <stdlib.h>
 #include <ctype.h>
 
-#include "irc.h"
+#include "util.h"
 
 void eprint(char *fmt, ...)
 {
@@ -30,7 +30,7 @@ void eprint(char *fmt, ...)
 }
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 38)) || defined(_WIN32)
-MY_API void strlcpy(char *to, const char *from, int len)
+void strlcpy(char *to, const char *from, int len)
 {
     memccpy(to, from, '\0', len);
     to[len-1] = '\0';
@@ -38,14 +38,14 @@ MY_API void strlcpy(char *to, const char *from, int len)
 #endif
 
 #ifdef _WIN32
-MY_API char *basename(char *path)
+char *basename(char *path)
 {
     char *p = strrchr(path, '\\');
     return p ? p + 1 : path;
 }
 #endif
 
-MY_API char *skip(char *s, char c)
+char *skip(char *s, char c)
 {
     while (*s != c && *s != '\0')
     {

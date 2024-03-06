@@ -9,7 +9,6 @@
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
-#include <unistd.h>
 
 #include "config.h"
 #include "irc.h"
@@ -24,6 +23,7 @@
 #include <winsock2.h>
 #else
 #include <sys/select.h>
+#include <unistd.h>
 #endif
 
 static time_t trespond;
@@ -51,11 +51,14 @@ int main()
     init_timers();
     init_mods();
     // Read the config
-
     bot = read_config(bot, "xbot.cfg");
 
     // check if the db exists, if not, create it
+#ifdef _WIN32
+    if (access(bot.db_file, 0) == -1)
+#else
     if (access(bot.db_file, F_OK) == -1)
+#endif
     {
         printf("Creating database file: %s\n", bot.db_file);
         bot.db = (struct db_table *)malloc(sizeof(struct db_table));
