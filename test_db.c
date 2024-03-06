@@ -11,22 +11,6 @@ int main()
     struct db_table *db;
     int i;
 
-    /*
-    db = (struct db_table *)malloc(sizeof(struct db_table));
-    db->count = 0;
-    db->hashes = NULL;
-
-    db_add_hash(db, "lua.scripts", "hello.lua,test.lua,youtube.lua");
-    db_add_hash(db, "lua.scriptcount", "2");
-
-    if (write_db(db, FNAME) == -1)
-    {
-        printf("Error writing db\n");
-    }
-
-    free(db);
-    */
-
     if (access(FNAME, F_OK) == -1)
     {
         printf("Creating db\n");
@@ -43,8 +27,8 @@ int main()
     // write some data if db is empty
     if (db->count == 0)
     {
-        db_add_hash(db, "lua.scripts", "hello.lua,test.lua,youtube.lua");
-        db_add_hash(db, "lua.scriptcount", "2");
+        db_add_hash_char(db, "lua.scripts", "hello.lua,test.lua,youtube.lua");
+        db_add_hash_int(db, "lua.scriptcount", 2);
         write_db(db, FNAME);
 
         return 0;
@@ -52,7 +36,14 @@ int main()
 
     for (i = 0; i < db->count; i++)
     {
-        printf("Key: %s, Value: %s\n", db->hashes[i].key, db->hashes[i].value);
+        if (db->hashes[i].type == DB_TYPE_INT)
+        {
+            printf("Key: %s, Value: %d\n", db->hashes[i].key, get_hash_int(db, db->hashes[i].key));
+        }
+        else
+        {
+            printf("Key: %s, Value: %s\n", db->hashes[i].key, get_hash_char(db, db->hashes[i].key));
+        }
     }
 
     free(db);

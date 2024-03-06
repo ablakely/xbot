@@ -89,7 +89,7 @@ struct db_table *read_db(char *fname)
     return db;
 }
 
-int db_add_hash(struct db_table *db, char *key, char *value)
+int db_add_hash(struct db_table *db, char *key, void *value)
 {
     int i;
 
@@ -101,27 +101,52 @@ int db_add_hash(struct db_table *db, char *key, char *value)
         }
     }
 
+    db->hashes[db->count].key_len = strlen(key) + 1;
+    db->hashes[db->count].key = (char *)malloc(sizeof(char) * db->hashes[db->count].key_len);
+
+    memset(db->hashes[db->count].key, 0, sizeof(char) * db->hashes[db->count].key_len);
+
+    strlcpy(db->hashes[db->count].key, key, sizeof(char) * db->hashes[db->count].key_len);
+
+    db->hashes[db->count].value = value;
+
+    db->count++;
+
+    return 0;
+}
+
+int db_add_hash_char(struct db_table *db, char *key, char *value)
+{
     db->hashes = (struct db_hash *)realloc(db->hashes, sizeof(struct db_hash) * (db->count + 1));
 
     // zero out reallocated memory
     memset(&db->hashes[db->count], 0, sizeof(struct db_hash));
 
-    db->hashes[db->count].key_len = strlen(key) + 1;
+    db->hashes[db->count].type = DB_TYPE_CHAR;
     db->hashes[db->count].value_len = strlen(value) + 1;
-
-    printf("key_len: %d, value_len: %d\n", sizeof(char) * db->hashes[db->count].key_len, sizeof(char) *  db->hashes[db->count].value_len);
-
-    db->hashes[db->count].key = (char *)malloc(sizeof(char) * db->hashes[db->count].key_len);
     db->hashes[db->count].value = (char *)malloc(sizeof(char) * db->hashes[db->count].value_len);
 
-    memset(db->hashes[db->count].key, 0, sizeof(char) * db->hashes[db->count].key_len);
     memset(db->hashes[db->count].value, 0, sizeof(char) * db->hashes[db->count].value_len);
 
-    strlcpy(db->hashes[db->count].key, key, sizeof(char) * db->hashes[db->count].key_len);
     strlcpy(db->hashes[db->count].value, value, sizeof(char) * db->hashes[db->count].value_len);
-    db->count++;
 
-    return 0;
+    return db_add_hash(db, key, db->hashes[db->count].value);
+}
+
+int db_add_hash_int(struct db_table *db, char *key, int value)
+{
+    db->hashes = (struct db_hash *)realloc(db->hashes, sizeof(struct db_hash) * (db->count + 1));
+
+    // zero out reallocated memory
+    memset(&db->hashes[db->count], 0, sizeof(struct db_hash));
+
+    db->hashes[db->count].type = DB_TYPE_INT;
+    db->hashes[db->count].value_len = sizeof(int);
+    db->hashes[db->count].value = (int *)malloc(sizeof(int));
+
+    memcpy(db->hashes[db->count].value, &value, sizeof(int));
+
+    return db_add_hash(db, key, db->hashes[db->count].value);
 }
 
 int db_del_hash(struct db_table *db, char *key)
@@ -144,7 +169,7 @@ int db_del_hash(struct db_table *db, char *key)
     return -1;
 }
 
-char *get_hash(struct db_table *db, char *key)
+void *get_hash(struct db_table *db, char *key)
 {
     int i;
 
@@ -158,3 +183,18 @@ char *get_hash(struct db_table *db, char *key)
 
     return NULL;
 }
+
+char *get_hash_char(struct db_table *db, char *key)
+{
+    return (char *)get_hash(db, key);
+}
+
+int get_hash_int(struct db_table *db, char *key)
+{
+    int value;
+
+    memcpy(&value, get_hash(db, key), sizeof(int));
+
+    return value;
+}
+
