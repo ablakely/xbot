@@ -41,6 +41,9 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
     if (config_lookup_string(cf, "bot.admin", &base))
         strlcpy(bot.admin, base, sizeof bot.admin);
 
+    if (config_lookup_string(cf, "bot.db", &base))
+        strlcpy(bot.db_file, base, sizeof bot.db_file);
+
     autoload = config_lookup(cf, "mods.autoload");
     count    = config_setting_length(autoload);
 

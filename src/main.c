@@ -9,8 +9,11 @@
 #include <stdlib.h>
 #include <time.h>
 #include <errno.h>
+#include <unistd.h>
+
 #include "config.h"
 #include "irc.h"
+#include "db.h"
 #include "util.h"
 #include "events.h"
 #include "module.h"
@@ -49,6 +52,23 @@ int main()
 
     // Read the config
     bot = read_config(bot, "xbot.cfg");
+
+    // check if the db exists, if not, create it
+    if (access(bot.db_file, F_OK) == -1)
+    {
+        printf("Creating db\n");
+        bot.db = (struct db_table *)malloc(sizeof(struct db_table));
+        memset(bot.db, 0, sizeof(struct db_table));
+
+        bot.db->count = 0;
+        bot.db->hashes = NULL;
+
+        write_db(bot.db, bot.db_file);
+    }
+    else
+    {
+        bot.db = read_db(bot.db_file);
+    }
 
     // Connect to the server
     printf("Connecting to %s...\n", bot.host);

@@ -1,10 +1,15 @@
 #ifndef DB_H
 #define DB_H
 
+#define DB_MAGIC 0xdeadbeef
+#define DB_VER 0x10
+
 struct db_hash
 {
-    char key[85];
-    char value[4096];
+    int key_len;
+    int value_len;
+    char *key;
+    char *value;
 };
 
 struct db_table
@@ -18,8 +23,8 @@ struct db_table
 
 int write_db(struct db_table *db, char *fname);
 struct db_table *read_db(char *fname);
-int add_hash(struct db_table *db, char *key, char *value);
-int del_hash(struct db_table *db, char *key);
+int db_add_hash(struct db_table *db, char *key, char *value);
+int db_del_hash(struct db_table *db, char *key);
 char *get_hash(struct db_table *db, char *key);
 
 #endif

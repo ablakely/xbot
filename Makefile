@@ -22,6 +22,8 @@ main:
 	$(CC) $(CFLAGS) $(SRC)/module.c -o $(OBJ)/module.o
 	$(CC) $(CFLAGS) $(SRC)/channel.c -o $(OBJ)/channel.o
 	$(CC) $(CFLAGS) $(SRC)/timers.c -o $(OBJ)/timers.o
+	$(CC) $(CFLAGS) $(SRC)/db.c -o $(OBJ)/db.o
+
 	$(CC) -o $(EXEC) $(OBJECTS) $(BINFLAGS)
 	@echo "All Done!"
 

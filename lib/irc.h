@@ -9,6 +9,8 @@
 
 #include <stdio.h>
 
+#include "db.h"
+
 #ifdef _WIN32
 #include <winsock2.h>
 #endif
@@ -29,6 +31,9 @@ struct irc_conn
     char host[256];
     char port[5];
     char real_name[512];
+
+    char db_file[256];
+    struct db_table *db;
 
     // I/O Buffers
     char *out;
