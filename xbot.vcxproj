@@ -125,7 +125,9 @@
     <ClCompile Include="src\util.c" />
   </ItemGroup>
   <ItemGroup>
-    <ResourceCompile Include="xbot.rc" />
+    <ResourceCompile Include="xbot.rc">
+      <AdditionalIncludeDirectories Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">lib</AdditionalIncludeDirectories>
+    </ResourceCompile>
   </ItemGroup>
   <ItemGroup>
     <None Include="resources\xbot.ico" />
