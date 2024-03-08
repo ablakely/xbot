@@ -10,6 +10,7 @@
 #include "events.h"
 #include "channel.h"
 
+#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -405,4 +406,42 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
         }
     }
 
+}
+
+#ifdef _WIN32
+BOOL check_hostmask_match(char *mask, char *host)
+#else
+bool check_hostmask_match(char *mask, char *host)
+#endif
+{
+    char *m = mask;
+    char *h = host;
+
+    while (*m && *h)
+    {
+        if (*m == '*')
+        {
+            m++;
+            if (!*m)
+            {
+                return 1;
+            }
+
+            while (*h && *h != *m)
+            {
+                h++;
+            }
+        }
+        else if (*m == *h)
+        {
+            m++;
+            h++;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return true;
 }

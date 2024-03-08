@@ -83,6 +83,8 @@ void add_user_to_channel(char *user, char *host, char *chan)
     is_halfop = false;
     is_owner = false;
     is_admin = false;
+    struct irc_conn *bot = get_bot();
+    char buf[512];
 
 
     if (!strcmp(chan, ""))
@@ -135,6 +137,12 @@ void add_user_to_channel(char *user, char *host, char *chan)
                 u->is_owner = is_owner;
                 u->is_admin = is_admin;
 
+                sprintf(buf, "%s!%s", u->nick, u->host);
+                if (check_hostmask_match(bot->admin, buf) == true)
+                {
+                    u->is_botadmin = true;
+                }
+
                 channels[i]->users[channels[i]->user_count] = *u;
                 channels[i]->user_count++;
 
@@ -143,12 +151,18 @@ void add_user_to_channel(char *user, char *host, char *chan)
 
             strlcpy(channels[i]->users[channels[i]->user_count].nick, user, 50);
             strlcpy(channels[i]->users[channels[i]->user_count].host, host, 256);
+            sprintf(buf, "%s!%s", user, host);
 
             channels[i]->users[channels[i]->user_count].is_op = is_op | is_owner | is_admin;
             channels[i]->users[channels[i]->user_count].is_voice = is_voice | is_halfop | is_op | is_owner | is_admin;
             channels[i]->users[channels[i]->user_count].is_halfop = is_halfop;
             channels[i]->users[channels[i]->user_count].is_owner = is_owner;
             channels[i]->users[channels[i]->user_count].is_admin = is_admin;
+
+            if (check_hostmask_match(bot->admin, buf) == true)
+            {
+                channels[i]->users[channels[i]->user_count].is_botadmin = true;
+            }
 
             channels[i]->user_count++;
         }
@@ -546,3 +560,25 @@ MY_API bool is_on_channel(char *nick, char *chan)
     return 0;
 }
 
+#ifdef _WIN32
+MY_API BOOL is_botadmin(char *nick)
+#else
+MY_API bool is_botadmin(char *nick)
+#endif
+{
+    int i, j;
+    struct irc_conn *bot = get_bot();
+
+    for (i = 0; i < chan_count; i++)
+    {
+        for (j = 0; j < channels[i]->user_count; j++)
+        {
+            if (!strcmp(channels[i]->users[j].nick, nick))
+            {
+                return channels[i]->users[j].is_botadmin;
+            }
+        }
+    }
+
+    return 0;
+}

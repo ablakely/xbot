@@ -1,6 +1,7 @@
 #include "irc.h"
 #include "util.h"
 #include "events.h"
+#include "channel.h"
 #include "module.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -112,7 +113,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
 
         if (!strcmp("JOIN", cmd))
         {
-            if (!strcmp(bot->admin, usr))
+            if (is_botadmin(usr) == true)
             {
                 irc_raw(bot, "JOIN :%s", arg);
             }
@@ -123,7 +124,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
         }
         else if (!strcmp("PART", cmd))
         {
-            if (!strcmp(bot->admin, usr))
+            if (is_botadmin(usr) == true)
             {
                 irc_raw(bot, "PART %s :Admin made me leave.", arg);
             }
@@ -134,7 +135,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
         }
         else if (!strcmp("HANDLERS", cmd))
         {
-            if (!strcmp(bot->admin, usr))
+            if (is_botadmin(usr) == true)
             {
                 for (i = 0; i < handlers_count; i++)
                 {
@@ -152,7 +153,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
         }
         else if (!strcmp("LOADMOD", cmd))
         {
-            if (!strcmp(bot->admin, usr))
+            if (is_botadmin(usr) == true)
             {
 #ifdef _WIN32
                 irc_notice(bot, usr, "Loading module: mods/%s.dll", arg);
@@ -170,7 +171,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
         }
         else if (!strcmp("UNLOADMOD", cmd))
         {
-            if (!strcmp(bot->admin, usr))
+            if (is_botadmin(usr) == true)
             {
 #ifdef _WIN32
                 irc_notice(bot, usr, "Unloading module: mods/%s.dll", arg);
@@ -188,7 +189,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
         }
         else if (!strcmp("MODLIST", cmd))
         {
-            if (!strcmp(bot->admin, usr))
+            if (is_botadmin(usr) == true)
             {
                 list_modules(bot, usr);
             }

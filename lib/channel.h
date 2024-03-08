@@ -33,12 +33,16 @@ struct user
     BOOL is_voice;
     BOOL is_owner;
     BOOL is_admin;
+
+    BOOL is_botadmin;
 #else
     bool is_op;
     bool is_halfop;
     bool is_voice;
     bool is_owner;
     bool is_admin;
+
+    bool is_botadmin;
 #endif
 };
 
@@ -75,6 +79,7 @@ MY_API BOOL is_voice(char *chan, char *nick);
 MY_API BOOL channel_exists(char *chan);
 MY_API BOOL user_exists(char *chan, char *nick);
 MY_API BOOL is_on_channel(char *nick, char *chan);
+MY_API BOOL is_botadmin(char *nick);
 #else
 MY_API bool is_op(char *chan, char *nick);
 MY_API bool is_halfop(char *chan, char *nick);
@@ -84,6 +89,7 @@ MY_API bool is_admin(char *chan, char *nick);
 MY_API bool channel_exists(char *chan);
 MY_API bool user_exists(char *chan, char *nick);
 MY_API bool is_on_channel(char *nick, char *chan);
+MY_API bool is_botadmin(char *nick);
 #endif
 
 #endif
