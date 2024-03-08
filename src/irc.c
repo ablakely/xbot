@@ -1,6 +1,9 @@
 /*
  * irc.c: IRC connection and parser
- * xbot: Just another IRC bot
+ * xbot: an advanced IRC bot for *nix and Windows
+ *
+ * This file contains the functions for connecting to an IRC server, sending
+ * and receiving data, and parsing the data received from the server.
  *
  * Written by Aaron Blakely <aaron@ephasic.org>
 **/

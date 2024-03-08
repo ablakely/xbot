@@ -4,6 +4,8 @@
  * Written by Aaron Blakely <aaron@ephasic.org>
 **/
 
+#define VERSION "0.1.0"
+
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
@@ -29,14 +31,14 @@
 
 static time_t trespond;
 
-int main()
+int main(int argc, char **argv)
 {
     int n;
     fd_set rd;
     struct irc_conn bot;
     struct timeval tv;
     struct timeval last_ping;
-
+    char conf[1024];
 
     char *p;
 	int bytesRecv;
@@ -59,8 +61,44 @@ int main()
     init_events();
     init_timers();
     init_mods();
+
+    strlcpy(conf, "xbot.cfg", sizeof conf);
+
+    if (argc > 1)
+    {
+        if (argc == 2)
+        {
+            if (!strcmp(argv[1], "-v"))
+            {
+                printf("xbot version: %s\n", VERSION);
+                printf("Compiled on: %s %s\n\n", __DATE__, __TIME__);
+                printf("Written by Aaron Blakely <aaron@ephasic.org>\n");
+                printf("Licensed under the MIT License\n");
+                return 0;
+            }
+            else if (!strcmp(argv[1], "-h"))
+            {
+                printf("Usage: xbot [-v] [-h] [-c <config file>]\n");
+                return 0;
+            }
+        }
+        else if (argc == 3)
+        {
+            if (!strcmp(argv[1], "-c"))
+            {
+                free(bot.in);
+                free(bot.out);
+
+                bot.in = calloc(INBUF_SIZE, sizeof(char));
+                bot.out = calloc(OUTBUF_SIZE, sizeof(char));
+
+                strlcpy(conf, argv[2], sizeof conf);
+            }
+        }
+    }
+
     // Read the config
-    bot = read_config(bot, "xbot.cfg");
+    bot = read_config(bot, conf);
 
     // check if the db exists, if not, create it
 #ifdef _WIN32

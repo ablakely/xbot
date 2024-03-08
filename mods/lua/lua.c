@@ -2,6 +2,7 @@
 #include "irc.h"
 #include "events.h"
 #include "module.h"
+#include "channel.h"
 #include "timers.h"
 #include <stdio.h>
 #include <stdlib.h>
@@ -120,6 +121,9 @@ void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const ch
 {
     int res;
 
+    if (!is_botadmin(user))
+        return;
+
     block = 1;
     printf("lua eval called with %s\n", text);
     if (strstr(text, "!lua") != NULL)
@@ -152,7 +156,12 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
 {
     char *name;
     char *script;
-    char *buf = (char *)malloc(sizeof(char *) * 500);
+    char *buf;
+
+    if (!is_botadmin(user))
+        return;
+
+    buf = (char *)malloc(sizeof(char *) * 500);
 
     if (strstr(text, "!load") != NULL)
     {
@@ -267,8 +276,13 @@ void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan,
     int i;
     char *name;
     char *script;
-    char *buf = (char *)malloc(sizeof(char *) * 500);
+    char *buf;
 
+    if (!is_botadmin(user))
+        return;
+
+    buf = (char *)malloc(sizeof(char *) * 500);
+    
     if (strstr(text, "!unload") != NULL)
     {
         text = skip((char *)text, ' ');
