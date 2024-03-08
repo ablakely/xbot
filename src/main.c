@@ -20,6 +20,7 @@
 #include "timers.h"
 
 #ifdef _WIN32
+#include "resource.h"
 #include <winsock2.h>
 #else
 #include <sys/select.h>
@@ -39,6 +40,14 @@ int main()
 
     char *p;
 	int bytesRecv;
+
+#ifdef _WIN32
+    HICON hIcon;
+
+    hIcon = LoadIcon(GetModuleHandle(NULL), MAKEINTRESOURCE(IDI_ICON1));
+    SendMessage(GetConsoleWindow(), WM_SETICON, ICON_SMALL, (LPARAM)hIcon);
+    SetConsoleTitle("xbot [starting]");
+#endif
 
     bot.in = calloc(INBUF_SIZE, sizeof(char));
     bot.out = calloc(OUTBUF_SIZE, sizeof(char));

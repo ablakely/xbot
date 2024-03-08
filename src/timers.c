@@ -1,10 +1,10 @@
+#include "timers.h"
+#include "util.h"
+#include "irc.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
 
-#include "timers.h"
-#include "util.h"
-#include "irc.h"
 
 struct timers *timers;
 int delete_queue[512];

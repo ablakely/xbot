@@ -10,7 +10,6 @@
 #include "events.h"
 #include "channel.h"
 
-#include <stdbool.h>
 #include <string.h>
 #include <stdlib.h>
 #include <stdio.h>
@@ -22,6 +21,7 @@
 #define FDOPEN _fdopen
 #define SETBUF setbuf
 #else
+#include <stdbool.h>
 #include <unistd.h>
 #include <netdb.h>
 #include <netinet/in.h>
@@ -33,8 +33,13 @@
 void irc_connect(struct irc_conn *bot)
 {
 #ifdef _WIN32
+    char titlebuf[256];
     WSADATA wsaData;
 	struct sockaddr_in server;
+    struct hostent *host;
+
+    sprintf(titlebuf, "xbot [connecting]: %s:%s", bot->host, bot->port);
+    SetConsoleTitle(titlebuf);
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         eprint("WSAStartup failed.\n");
@@ -55,6 +60,22 @@ void irc_connect(struct irc_conn *bot)
 	server.sin_addr.s_addr = inet_addr(bot->host);
 	server.sin_port = htons(atoi(bot->port));
 
+    // resolve hostname
+    if (server.sin_addr.s_addr == INADDR_NONE)
+    {
+        host = gethostbyname(bot->host);
+        if (host == NULL)
+        {
+            eprint("Error resolving hostname: %d\n", WSAGetLastError());
+            closesocket(bot->srv_fd);
+            WSACleanup();
+
+            return;
+        }
+
+        memcpy(&server.sin_addr, host->h_addr_list[0], host->h_length);
+    }
+
 	if (connect(bot->srv_fd, (struct sockaddr*)&server, sizeof(server)) == SOCKET_ERROR)
 	{
 		eprint("Failed to connect to IRC server: %d\n", WSAGetLastError());
@@ -64,6 +85,9 @@ void irc_connect(struct irc_conn *bot)
 
 		return;
 	}
+
+    sprintf(titlebuf, "xbot [connected]: %s:%s", bot->host, bot->port);
+    SetConsoleTitle(titlebuf);
 #else
     int srv_fd;
     struct addrinfo hints;

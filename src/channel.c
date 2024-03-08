@@ -71,6 +71,7 @@ void add_user_to_channel(char *user, char *host, char *chan)
 {
     int i;
     struct user *u, *uc;
+    char buf[512];
 
 #ifdef _WIN32
     BOOL is_op, is_voice, is_halfop, is_owner, is_admin;
@@ -78,13 +79,12 @@ void add_user_to_channel(char *user, char *host, char *chan)
     bool is_op, is_voice, is_halfop, is_owner, is_admin;
 #endif
 
+    struct irc_conn *bot = get_bot();
     is_op = false;
     is_voice = false;
     is_halfop = false;
     is_owner = false;
     is_admin = false;
-    struct irc_conn *bot = get_bot();
-    char buf[512];
 
 
     if (!strcmp(chan, ""))

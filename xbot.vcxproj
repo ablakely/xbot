@@ -62,7 +62,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>lib;include\libconfig-1.7.3\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>.;lib;include\libconfig-1.7.3\lib;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;MY_DLL_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -111,6 +111,7 @@
     <ClInclude Include="lib\module.h" />
     <ClInclude Include="lib\timers.h" />
     <ClInclude Include="lib\util.h" />
+    <ClInclude Include="resource.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\channel.c" />
@@ -122,6 +123,13 @@
     <ClCompile Include="src\module.c" />
     <ClCompile Include="src\timers.c" />
     <ClCompile Include="src\util.c" />
+  </ItemGroup>
+  <ItemGroup>
+    <ResourceCompile Include="xbot.rc" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="resources\xbot.ico" />
+    <None Include="resources\xbot.png" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
