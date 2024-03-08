@@ -1,10 +1,6 @@
-```html
-<p align="center">
-  <img src="https://raw.githubusercontent.com/ablakely/xbot/master/resources/xbot.png">
-  <br>
-  <h2 align="center">xbot</h2>
-</p>
-```
+![xbot](https://raw.githubusercontent.com/ablakely/xbot/master/resources/xbot.png)
+
+# xbot
 
 xbot is a modular IRC bot in C for Linux and Windows
 
