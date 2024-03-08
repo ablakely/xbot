@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://raw.githubusercontent.com/ablakely/xbot/master/resources/xbot.png" alt="xbot">
+  <img src="https://raw.githubusercontent.com/ablakely/xbot/master/resources/xbot_transparent.png" alt="xbot">
   <br>
   <h2 align="center">xbot</h2>
 </p>
