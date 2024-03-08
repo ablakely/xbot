@@ -4,8 +4,6 @@
   <h2 align="center">xbot</h2>
 </p>
 
----
-
 xbot is a modular IRC bot in C for Linux and Windows
 
 
