@@ -132,6 +132,11 @@
   <ItemGroup>
     <None Include="resources\xbot.ico" />
     <None Include="resources\xbot.png" />
+    <None Include="resources\xbot128x128.ico" />
+    <None Include="resources\xbot16x16.ico" />
+    <None Include="resources\xbot32x32.ico" />
+    <None Include="resources\xbot48x48.ico" />
+    <None Include="resources\xbot64x64.ico" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
