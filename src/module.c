@@ -108,10 +108,8 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
     {
         irc_notice(bot, where, "Module '%s' loaded.", file);
     }
-    else
-    {
-        xlog("Module '%s' loaded.\n", file);
-    }
+
+    xlog("[module] Module '%s' loaded.\n", file);
     free(error);
 #else
     void (*mod_init)();
@@ -120,7 +118,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
     mods->modules[mods->count].handle = dlopen(file, RTLD_NOW | RTLD_GLOBAL | RTLD_NODELETE);
     if (!mods->modules[mods->count].handle)
     {
-        sprintf(error, "Error: %s", dlerror());
+        sprintf(error, "[module] Error loading %s: %s", file, dlerror());
 
         if (strcmp("runtime", stype))
         {
@@ -136,6 +134,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
             irc_notice(bot, where, error);
         }
 
+        xlog("[module] %s", error);
         return;
     }
 
@@ -145,11 +144,9 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
 
     if ((error = dlerror()) != NULL)
     {
-        //sprintf(error, "Error: %s", error);
-        eprint("Error: %s\n", error);
-
         if (strcmp("runtime", stype))
         {
+            eprint("Error: %s\n", error);
             return;
         }
         else if (strcmp(PRIVMSG_CHAN, stype))
@@ -160,6 +157,8 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
         {
             irc_notice(bot, where, error);
         }
+
+        xlog("[module] Error: %s", error);
     }
 
     (*mods->modules[mods->count].init)();
@@ -210,7 +209,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
     }
     else
     {
-        xlog("Module '%s' loaded.\n", file);
+        xlog("[module] Module '%s' loaded.\n", file);
     }
     free(error);
 #endif
@@ -239,7 +238,7 @@ void unload_module(struct irc_conn *bot, char *where, char *file)
             }
             else
             {
-                xlog("Module '%s' unloaded.\n", file);
+                xlog("[module] Module '%s' unloaded.\n", file);
             }
 
             while (i < mods->count)

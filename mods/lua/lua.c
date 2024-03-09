@@ -125,12 +125,9 @@ void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const ch
         return;
 
     block = 1;
-    printf("lua eval called with %s\n", text);
     if (strstr(text, "!lua") != NULL)
     {
         text = skip(text, ' ');
-        printf("lua: %s\n", text);
-
         res = luaL_loadstring(lua.L, text);
 
         if (res == LUA_OK)
@@ -174,11 +171,12 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
         {
             if (!strcmp(chan, "-stdio-"))
             {
-                printf("Error loading lua script: %s\n", lua_tostring(lua.L, -1));
+                xlog("[lua] Error loading lua script: %s\n", lua_tostring(lua.L, -1));
             } 
             else
             {
-                irc_privmsg(bot, chan, "Error loading lua script: %s", lua_tostring(lua.L, -1));
+                irc_privmsg(bot, chan, "[lua] Error loading lua script: %s", lua_tostring(lua.L, -1));
+                xlog("[lua] Error loading lua script: %s\n", lua_tostring(lua.L, -1));
             }
 
             return;
@@ -193,11 +191,12 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
         {
             if (!strcmp(chan, "-stdio-"))
             {
-                printf("Error executing lua script: %s\n", lua_tostring(lua.L, -1));
+                xlog("[lua] Error executing lua script: %s\n", lua_tostring(lua.L, -1));
             }
             else
             {
                 irc_privmsg(bot, chan, "Error executing lua script: %s", lua_tostring(lua.L, -1));
+                xlog("[lua] Error executing lua script: %s\n", lua_tostring(lua.L, -1));
             }
 
             return;
@@ -209,7 +208,6 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
         if (lua_isfunction(lua.L, -1))
         {
             lua.scripts[lua.script_count].unload = luaL_ref(lua.L, LUA_REGISTRYINDEX);
-            printf("dbg: unload ref: %d\n", lua.scripts[lua.script_count].unload);
         }
         else
         {
@@ -217,11 +215,12 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
 
             if (!strcmp(chan, "-stdio-"))
             {
-                printf("No unload() function in %s\n", name);
+                xlog("[lua] No unload() function in %s\n", name);
             }
             else
             {
                 irc_privmsg(bot, chan, "No unload() function in %s", name);
+                xlog("[lua] No unload() function in %s [issued by %s!%s@%s]\n", name, user, host, chan);
             }
         }
 
@@ -234,11 +233,12 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
             {
                 if (!strcmp(chan, "-stdio-"))
                 {
-                    printf("Error calling load() in %s: %s\n", buf, lua_tostring(lua.L, -1));
+                    xlog("[lua] Error calling load() in %s: %s\n", buf, lua_tostring(lua.L, -1));
                 }
                 else
                 {
                     irc_privmsg(bot, chan, "Error calling load() in %s: %s", buf, lua_tostring(lua.L, -1));
+                    xlog("[lua] Error calling load() in %s: %s\n", buf, lua_tostring(lua.L, -1));
                 }
 
                 return;
@@ -248,22 +248,24 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
 
             if (!strcmp(chan, "-stdio-"))
             {
-                printf("Loaded %s\n", name);
+                xlog("[lua] Loaded %s\n", name);
             }
             else
             {
                 irc_privmsg(bot, chan, "Loaded %s", name);
+                xlog("[lua] Loaded %s [issued by %s!%s@%s]\n", name, user, host, chan);
             }
         }
         else
         {
             if (!strcmp(chan, "-stdio-"))
             {
-                printf("Error: No load() function in %s\n", buf);
+                xlog("[lua] Error: No load() function in %s\n", buf);
             }
             else
             {
                 irc_privmsg(bot, chan, "Error: No load() function in %s", buf);
+                xlog("[lua] Error: No load() function in %s [issued by %s!%s@%s]\n", buf, user, host, chan);
             }
         }
     }
@@ -299,6 +301,9 @@ void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan,
                 if (lua_pcall(lua.L, 0, 0, 0) != LUA_OK)
                 {
                     irc_privmsg(bot, chan, "Error calling unload() in %s: %s", buf, lua_tostring(lua.L, -1));
+                    xlog("[lua] Error calling unload() in %s: %s\n", buf, lua_tostring(lua.L, -1));
+
+                    free(buf);
                     return;
                 }
 
@@ -307,8 +312,8 @@ void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan,
 
                 remove_script(text);
 
-                sprintf(buf, "Unloaded %s", text);
-                irc_privmsg(bot, chan, buf);
+                irc_privmsg(bot, chan, "Unloaded %s", text);
+                xlog("[lua] Unloaded %s [issued by %s!%s@%s]\n", text, user, host, chan);
 
                 while (i < lua.script_count)
                 {
@@ -324,6 +329,7 @@ void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan,
         }
 
         irc_privmsg(bot, chan, "Error: %s not loaded", text);
+        xlog("[lua] Error: %s not loaded [issued by %s!%s@%s]\n", text, user, host, chan);
     }
 
 
@@ -362,33 +368,37 @@ void mod_init()
     // load init.lua
     if (luaL_loadfile(lua.L, "./mods/lua/init.lua") != LUA_OK)
     {
-        printf("Error loading init.lua: %s\n", lua_tostring(lua.L, -1));
+        xlog("[lua] Error loading init.lua: %s\n", lua_tostring(lua.L, -1));
+
+        free(buf);
         return;
     }
 
     if (lua_pcall(lua.L, 0, 0, 0) != LUA_OK)
     {
-        printf("Error executing init.lua: %s\n", lua_tostring(lua.L, -1));
+        xlog("[lua] Error executing init.lua: %s\n", lua_tostring(lua.L, -1));
+
+        free(buf);
         return;
     }
 
     for (i = 0; i < list.count; i++)
     {
-        printf("Loading %s\n", list.scripts[i]);
+        xlog("[lua] Loading %s\n", list.scripts[i]);
 
         sprintf(buf, "./scripts/%s", list.scripts[i]);
         strlcpy(lua.scripts[lua.script_count].fname, buf, 150);
 
         if (luaL_loadfile(lua.L, buf) != LUA_OK)
         {
-            printf("Error loading lua script: %s\n", lua_tostring(lua.L, -1));
+            xlog("[lua] Error loading lua script: %s\n", lua_tostring(lua.L, -1));
             continue;
         }
 
         // execute the script
         if (lua_pcall(lua.L, 0, 0, 0) != LUA_OK)
         {
-            printf("Error executing lua script: %s\n", lua_tostring(lua.L, -1));
+            xlog("[lua] Error executing lua script: %s\n", lua_tostring(lua.L, -1));
             continue;
         }
 
@@ -398,12 +408,11 @@ void mod_init()
         if (lua_isfunction(lua.L, -1))
         {
             lua.scripts[lua.script_count].unload = luaL_ref(lua.L, LUA_REGISTRYINDEX);
-            printf("dbg: unload ref: %d\n", lua.scripts[lua.script_count].unload);
         }
         else
         {
             lua.scripts[lua.script_count].unload = -1;
-            printf("No unload() function in %s\n", list.scripts[i]);
+            xlog("[lua] No unload() function in %s\n", list.scripts[i]);
         }
 
         // call the load function if it exists
@@ -413,20 +422,19 @@ void mod_init()
         {
             if (lua_pcall(lua.L, 0, 0, 0) != LUA_OK)
             {
-                printf("Error calling load() in %s: %s\n", buf, lua_tostring(lua.L, -1));
+                xlog("[lua] Error calling load() in %s: %s\n", buf, lua_tostring(lua.L, -1));
                 continue;
             }
 
             lua.script_count++;
-            printf("Loaded %s\n", list.scripts[i]);
+            xlog("[lua] Loaded %s\n", list.scripts[i]);
         }
         else
         {
-            printf("Error: No load() function in %s\n", buf);
+            xlog("[lua] Error: No load() function in %s\n", buf);
         }
     }
 
-    printf("Lua module loaded\n");
     free(buf);
 }
 
@@ -439,5 +447,4 @@ void mod_unload()
 
     unregister_module("lua");
     del_handler(PRIVMSG_CHAN, lua_eval);
-    printf("Lua module unloaded\n");
 }

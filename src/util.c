@@ -15,18 +15,22 @@
 
 void eprint(char *fmt, ...)
 {
+    char msg[4096];
     char bufout[4096];
     va_list ap;
 
     va_start(ap, fmt);
-    vsnprintf(bufout, sizeof bufout, fmt, ap);
+    vsnprintf(msg, sizeof msg, fmt, ap);
     va_end(ap);
 
-    fprintf(stderr, "%s", bufout);
+    sprintf(bufout, "%s", msg);
     if (fmt[0] && fmt[strlen(fmt) - 1] == ':')
     {
-        fprintf(stderr, "%s\n", strerror(errno));
+        sprintf(bufout, "%s\n", strerror(errno));
     }
+
+    fprintf(stderr, "%s", bufout);
+    xlog("%s", bufout);
 }
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 38)) || defined(_WIN32)

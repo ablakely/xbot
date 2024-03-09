@@ -25,12 +25,12 @@ void xlog(char *fmt, ...)
     va_list args;
     time_t tv;
 
-    char *buf = calloc(8128, sizeof(char));
+    char *buf = calloc(4165, sizeof(char));
     char *msg = calloc(4096, sizeof(char));
     char *tbuf = calloc(64, sizeof(char));
 
     va_start(args, fmt);
-    vsnprintf(msg, 4096, fmt, args);
+    vsnprintf(msg, 4095, fmt, args);
 
     time(&tv);
 

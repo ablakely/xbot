@@ -123,10 +123,10 @@ void irc_connect(struct irc_conn *bot)
     freeaddrinfo(res);
     if (!r)
     {
-        eprint("Error: Cannot connect to host '%s'\n", bot->host);
+        eprint("[IRC] Error: Cannot connect to host '%s'\n", bot->host);
     }
 
-    xlog("Connected!\n");
+    xlog("[IRC] Connected!\n");
     bot->srv_fd = FDOPEN(srv_fd, "r+");
 #endif
 }
@@ -134,7 +134,7 @@ void irc_connect(struct irc_conn *bot)
 void irc_auth(struct irc_conn *bot)
 {
     irc_raw(bot, "NICK %s", bot->nick);
-    irc_raw(bot, "USER %s \" %s :xbot (v0.5) - developed by ab3800", bot->nick, bot->host);
+    irc_raw(bot, "USER %s \" %s :xbot v%s (https://github.com/ablakely/xbot)", bot->nick, bot->host, VERSION);
 
 #ifndef _WIN32
     fflush(bot->srv_fd);
@@ -291,9 +291,9 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
                 if (!strcmp("VERSION", ctcp))
                 {
 #ifdef _WIN32
-                    irc_notice(bot, user, "VERSION xbot: v0.5 (Windows) - Developed by ab3800");
+                    irc_notice(bot, user, "VERSION xbot: v%s (Windows)", VERSION);
 #else
-                    irc_notice(bot, user, "VERSION xbot: v0.5 (Linux) - Developed by ab3800");
+                    irc_notice(bot, user, "VERSION xbot: v%s (Linux)", VERSION);
 #endif
                 }
                 else

@@ -34,5 +34,5 @@ function del_handler(type, func)
         end
     end
 
-    print("Handler not found")
+    xlog("[lua/init.lua] del_handler: Handler not found")
 end

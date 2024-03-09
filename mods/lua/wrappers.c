@@ -11,6 +11,14 @@ void lua_init_wrappers()
     lua_register(lua.L, "kick", kick_wrapper);
     lua_register(lua.L, "mode", mode_wrapper);
     lua_register(lua.L, "ctcp", ctcp_wrapper);
+    lua_register(lua.L, "xlog", xlog_wrapper);
+}
+
+void xlog_wrapper(lua_State *L)
+{
+    char *msg = (char *)lua_tostring(L, 1);
+
+    xlog("%s", msg);
 }
 
 void raw_wrapper(lua_State *L)

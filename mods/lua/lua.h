@@ -61,6 +61,7 @@ void lua_fire_handlers(char *event, ...);
 
 // wrappers.c
 void lua_init_wrappers();
+void xlog_wrapper(lua_State *L);
 void raw_wrapper(lua_State *L);
 void privmsg_wrapper(lua_State *L);
 void notice_wrapper(lua_State *L);

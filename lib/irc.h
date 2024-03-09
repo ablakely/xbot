@@ -7,6 +7,8 @@
 #ifndef IRC_H
 #define IRC_H
 
+#define VERSION "0.1.0"
+
 #include <stdio.h>
 
 #include "util.h"

@@ -43,11 +43,10 @@ void init_events()
 MY_API int add_handler(char *type, void *handler)
 {
     int i;
-    xlog("Installing handler @ %p [type: %s]\n", handler, type);
+    xlog("[events] Installing handler @ %p [type: %s]\n", handler, type);
 
     for (i = 0; i < handlers_count; i++)
     {
-        printf("comparing %s to %s\n", handlers[i]->type, type);
         if (!strcmp(handlers[i]->type, type))
         {
             if (handlers[i]->count < 128)
@@ -57,12 +56,11 @@ MY_API int add_handler(char *type, void *handler)
 
                 handlers[i]->count++;
 
-                printf("type %s count: %d\n", type, handlers[i]->count);
                 return handlers[i]->count - 1;
             }
             else
             {
-                xlog("Handler array is full, cannot add more handlers.\n");
+                xlog("[events] Handler array is full, cannot add more handlers.\n");
                 return -1;
             }
         }

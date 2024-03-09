@@ -4,7 +4,6 @@
  * Written by Aaron Blakely <aaron@ephasic.org>
 **/
 
-#define VERSION "0.1.0"
 
 #include <stdio.h>
 #include <string.h>
@@ -109,7 +108,7 @@ int main(int argc, char **argv)
     if (access(bot.db_file, F_OK) == -1)
 #endif
     {
-        xlog("Creating database file: %s\n", bot.db_file);
+        xlog("[DB] Creating database file: %s\n", bot.db_file);
         bot.db = (struct db_table *)malloc(sizeof(struct db_table));
         memset(bot.db, 0, sizeof(struct db_table));
         set_bot_db(bot.db);
@@ -121,7 +120,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        xlog("Reading database file: %s\n", bot.db_file);
+        xlog("[DB] Reading database file: %s\n", bot.db_file);
         bot.db = db_read(bot.db_file);
         set_bot_db(bot.db);
     }
@@ -130,7 +129,7 @@ int main(int argc, char **argv)
     run_autoload(&bot);
 
     // Connect to the server
-    xlog("Connecting to %s...\n", bot.host);
+    xlog("[IRC] Connecting to %s...\n", bot.host);
 
     irc_connect(&bot);
     trespond = time(NULL);

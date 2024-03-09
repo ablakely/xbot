@@ -25,7 +25,7 @@ int lua_add_handler(lua_State *L)
 
     if (lua_gettop(L) < 2)
     {
-        printf("Error: add_handler requires 2 arguments\n");
+        xlog("[lua] Error: add_handler requires 2 arguments\n");
         return 0;
     }
 
@@ -36,12 +36,12 @@ int lua_add_handler(lua_State *L)
     if (lreg == -1)
     {
         const char *err = lua_tostring(L, -1);
-        printf("Error: %s\n", err);
+        xlog("[lua/events/lua_add_handler] Error: %s\n", err);
     }
 
     event = (char *)lua_tostring(L, 1);
 
-    printf("Installing handler for event: %s : %d\n", event, lreg);
+    xlog("[lua] Installing handler for event: %s : %d\n", event, lreg);
 
     strlcpy(lua.events[lua.event_count].event, event, 25);
     lua.events[lua.event_count].lreg = lreg;
@@ -61,7 +61,7 @@ void lua_del_handler(lua_State *L)
 
     if (lua_gettop(L) < 2)
     {
-        printf("Error: del_handler requires 2 arguments\n");
+        xlog("[lua] Error: del_handler requires 2 arguments\n");
         return;
     }
 
@@ -77,7 +77,7 @@ void lua_del_handler(lua_State *L)
         {
             if (lua.events[i].lreg == lreg)
             {
-                printf("Removing handler for event: %s : %d\n", event, lreg);
+                xlog("[lua] Removing handler for event: %s : %d\n", event, lreg);
                 luaL_unref(L, LUA_REGISTRYINDEX, lua.events[i].lreg);
 
                 while (i < lua.event_count)
@@ -111,7 +111,7 @@ void lua_callfunc(int lreg, int argc, ...)
     if (lua_pcall(lua.L, argc, 0, 0) != LUA_OK)
     {
         const char *err = lua_tostring(L, -1);
-        printf("Error: %s\n", err);
+        xlog("[lua/events/lua_callfunc] Error: %s\n", err);
         lua_pop(L, 1);
     }
 
@@ -125,8 +125,6 @@ void lua_fire_handlers(char *event, ...)
     int i;
     va_list args;
     char *user, *host, *chan, *text;
-
-    printf("lua_fire_handlers: %s\n", event);
 
     for (i = 0; i < lua.event_count; i++)
     {
@@ -143,9 +141,6 @@ void lua_fire_handlers(char *event, ...)
                 host = va_arg(args, char *);
                 chan = va_arg(args, char *);
                 text = va_arg(args, char *);
-
-                printf("dbug: %s %s %s %s\n", user, host, chan, text);
-                printf("dbug: %s %d %d\n", lua.events[i].event, lua.events[i].lreg, lua.event_count);
 
                 lua_callfunc(lua.events[i].lreg, 4, user, host, chan, text);
             }
