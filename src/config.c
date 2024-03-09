@@ -33,6 +33,12 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
     if (config_lookup_string(cf, "bot.nick", &base))
         strlcpy(bot.nick, base, sizeof bot.nick);
 
+    if (config_lookup_string(cf, "bot.user", &base))
+        strlcpy(bot.user, base, sizeof bot.user);
+
+    if (config_lookup_string(cf, "bot.real", &base))
+        strlcpy(bot.real_name, base, sizeof bot.real_name);
+
     if (config_lookup_string(cf, "server.host", &base))
         strlcpy(bot.host, base, sizeof bot.host);
 

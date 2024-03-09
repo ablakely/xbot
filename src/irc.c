@@ -134,7 +134,7 @@ void irc_connect(struct irc_conn *bot)
 void irc_auth(struct irc_conn *bot)
 {
     irc_raw(bot, "NICK %s", bot->nick);
-    irc_raw(bot, "USER %s \" %s :xbot v%s (https://github.com/ablakely/xbot)", bot->nick, bot->host, VERSION);
+    irc_raw(bot, "USER %s \" %s :%s", bot->user, bot->host, bot->real_name);
 
 #ifndef _WIN32
     fflush(bot->srv_fd);
@@ -291,9 +291,9 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
                 if (!strcmp("VERSION", ctcp))
                 {
 #ifdef _WIN32
-                    irc_notice(bot, user, "VERSION xbot: v%s (Windows)", VERSION);
+                    irc_notice(bot, user, "VERSION xbot: v%s [Windows] (https://github.com/ablakely/xbot)", VERSION);
 #else
-                    irc_notice(bot, user, "VERSION xbot: v%s (Linux)", VERSION);
+                    irc_notice(bot, user, "VERSION xbot: v%s [Linux] (https://github.com/ablakely/xbot)", VERSION);
 #endif
                 }
                 else

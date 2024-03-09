@@ -31,7 +31,8 @@ struct irc_conn
 	FILE *srv_fd;
 #endif
 
-    char nick[32];
+    char nick[50];
+    char user[50];
     char admin[256];
     char host[256];
     char port[5];
