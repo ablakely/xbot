@@ -36,6 +36,7 @@ struct irc_conn
     char real_name[512];
 
     char db_file[256];
+    char log_file[256];
     struct db_table *db;
 
     // I/O Buffers

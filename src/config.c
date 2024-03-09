@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
+#include <string.h>
 #include <libconfig.h>
 #include "irc.h"
 #include "util.h"
@@ -20,7 +21,7 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
 
     if (!config_read_file(cf, file))
     {
-        printf("[xbot.cfg:%d] Configuration error: %s\n",
+        xlog("[xbot.cfg:%d] Configuration error: %s\n",
             config_error_line(cf),
             config_error_text(cf)
         );
@@ -44,6 +45,9 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
     if (config_lookup_string(cf, "bot.db", &base))
         strlcpy(bot.db_file, base, sizeof bot.db_file);
 
+    if (config_lookup_string(cf, "bot.log", &base))
+        strlcpy(bot.log_file, base, sizeof bot.log_file);
+
     config_destroy(cf);
 
     return bot;
@@ -63,7 +67,7 @@ void run_autoload(struct irc_conn *bot)
 
     if (!config_read_file(cf, "xbot.cfg"))
     {
-        printf("[xbot.cfg:%d] Configuration error: %s\n",
+        xlog("[xbot.cfg:%d] Configuration error: %s\n",
             config_error_line(cf),
             config_error_text(cf)
         );

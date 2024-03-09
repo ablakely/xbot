@@ -27,7 +27,7 @@ int db_write(struct db_table *db, char *fname)
     fullpath = realpath(fname, NULL);
 #endif
 
-    printf("Writing db to file: %s\n", fullpath);
+    xlog("Writing db to file: %s\n", fullpath);
 
     // write the header
     fwrite(db, sizeof(struct db_table), 1, fp);
@@ -65,7 +65,7 @@ struct db_table *db_read(char *fname)
     // check the magic value
     if (db->db_magic != DB_MAGIC)
     {
-        printf("Error: %s incompatible or unknown db file format: Bad Magic\n", fname);
+        xlog("Error: %s incompatible or unknown db file format: Bad Magic\n", fname);
 
         return NULL;
     }
@@ -74,7 +74,7 @@ struct db_table *db_read(char *fname)
     // check the version
     if (db->db_ver != DB_VER)
     {
-        printf("Error: %s incompatible or unknown db file format: Incompatible Version\n", fname);
+        xlog("Error: %s incompatible or unknown db file format: Incompatible Version\n", fname);
 
         return NULL;
     }

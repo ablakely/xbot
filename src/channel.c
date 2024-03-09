@@ -16,7 +16,7 @@ void add_channel(char *name)
     if (channel_exists(name) == 1)
         return;
 
-    printf("Adding channel %s\n", name);
+    xlog("Adding channel %s\n", name);
     channels[chan_count] = calloc(1, sizeof(struct channel));
 
     strlcpy(channels[chan_count]->name, name, 32);
@@ -35,7 +35,7 @@ void remove_channel(char *name)
     {
         if (!strcmp(channels[i]->name, name))
         {
-            printf("Removing channel %s\n", name);
+            xlog("Removing channel %s\n", name);
             free(channels[i]->users);
             free(channels[i]);
 
@@ -122,7 +122,7 @@ void add_user_to_channel(char *user, char *host, char *chan)
     if (user_exists(chan, user) == 1)
         return;
 
-    printf("Adding user %s!%s to channel %s\n", user, host, chan);
+    xlog("Adding user %s!%s to channel %s\n", user, host, chan);
 
     for (i = 0; i < chan_count; i++)
     {
@@ -181,7 +181,7 @@ void remove_user_from_channel(char *user, char *chan)
             {
                 if (!strcmp(channels[i]->users[j].nick, user))
                 {
-                    printf("Removing user %s from channel %s\n", user, chan);
+                    xlog("Removing user %s from channel %s\n", user, chan);
 
                     for (j = j; j < channels[i]->user_count; j++)
                     {
@@ -286,7 +286,7 @@ void user_quit(char *nick)
         {
             if (!strcmp(channels[i]->users[j].nick, nick))
             {
-                printf("Removing user %s from channel %s\n", nick, channels[i]->name);
+                xlog("Removing user %s from channel %s\n", nick, channels[i]->name);
 
                 for (j = j; j < channels[i]->user_count; j++)
                 {

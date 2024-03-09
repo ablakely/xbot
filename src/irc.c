@@ -126,7 +126,7 @@ void irc_connect(struct irc_conn *bot)
         eprint("Error: Cannot connect to host '%s'\n", bot->host);
     }
 
-    printf("Connected!\n");
+    xlog("Connected!\n");
     bot->srv_fd = FDOPEN(srv_fd, "r+");
 #endif
 }

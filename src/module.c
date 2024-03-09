@@ -110,7 +110,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
     }
     else
     {
-        printf("Module '%s' loaded.\n", file);
+        xlog("Module '%s' loaded.\n", file);
     }
     free(error);
 #else
@@ -210,7 +210,7 @@ void load_module(struct irc_conn *bot, char *where, char *stype, char *file)
     }
     else
     {
-        printf("Module '%s' loaded.\n", file);
+        xlog("Module '%s' loaded.\n", file);
     }
     free(error);
 #endif
@@ -239,7 +239,7 @@ void unload_module(struct irc_conn *bot, char *where, char *file)
             }
             else
             {
-                printf("Module '%s' unloaded.\n", file);
+                xlog("Module '%s' unloaded.\n", file);
             }
 
             while (i < mods->count)

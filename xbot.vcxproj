@@ -108,6 +108,7 @@
     <ClInclude Include="lib\db.h" />
     <ClInclude Include="lib\events.h" />
     <ClInclude Include="lib\irc.h" />
+    <ClInclude Include="lib\logger.h" />
     <ClInclude Include="lib\module.h" />
     <ClInclude Include="lib\timers.h" />
     <ClInclude Include="lib\util.h" />
@@ -119,6 +120,7 @@
     <ClCompile Include="src\db.c" />
     <ClCompile Include="src\events.c" />
     <ClCompile Include="src\irc.c" />
+    <ClCompile Include="src\logger.c" />
     <ClCompile Include="src\main.c" />
     <ClCompile Include="src\module.c" />
     <ClCompile Include="src\timers.c" />

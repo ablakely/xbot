@@ -23,6 +23,7 @@ main:
 	$(CC) $(CFLAGS) $(SRC)/channel.c -o $(OBJ)/channel.o
 	$(CC) $(CFLAGS) $(SRC)/timers.c -o $(OBJ)/timers.o
 	$(CC) $(CFLAGS) $(SRC)/db.c -o $(OBJ)/db.o
+	$(CC) $(CFLAGS) $(SRC)/logger.c -o $(OBJ)/logger.o
 
 	$(CC) -o $(EXEC) $(OBJECTS) $(BINFLAGS)
 	@echo "All Done!"

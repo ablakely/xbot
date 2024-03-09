@@ -6,7 +6,7 @@ Release
 mods/test
 .cache
 UpgradeLog*.XML
-
+xbot.log
 xbot.db
 *.so
 *.dll

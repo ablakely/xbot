@@ -100,6 +100,8 @@ int main(int argc, char **argv)
     // Read the config
     bot = read_config(bot, conf);
 
+    log_init(bot.log_file);
+
     // check if the db exists, if not, create it
 #ifdef _WIN32
     if (access(bot.db_file, 0) == -1)
@@ -107,7 +109,7 @@ int main(int argc, char **argv)
     if (access(bot.db_file, F_OK) == -1)
 #endif
     {
-        printf("Creating database file: %s\n", bot.db_file);
+        xlog("Creating database file: %s\n", bot.db_file);
         bot.db = (struct db_table *)malloc(sizeof(struct db_table));
         memset(bot.db, 0, sizeof(struct db_table));
         set_bot_db(bot.db);
@@ -119,7 +121,7 @@ int main(int argc, char **argv)
     }
     else
     {
-        printf("Reading database file: %s\n", bot.db_file);
+        xlog("Reading database file: %s\n", bot.db_file);
         bot.db = db_read(bot.db_file);
         set_bot_db(bot.db);
     }
@@ -128,7 +130,7 @@ int main(int argc, char **argv)
     run_autoload(&bot);
 
     // Connect to the server
-    printf("Connecting to %s...\n", bot.host);
+    xlog("Connecting to %s...\n", bot.host);
 
     irc_connect(&bot);
     trespond = time(NULL);

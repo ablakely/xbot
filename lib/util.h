@@ -7,6 +7,8 @@
 #ifndef UTIL_H
 #define UTIL_H
 
+#include "logger.h"
+
 #ifdef _WIN32
 #define true TRUE
 #define false FALSE
