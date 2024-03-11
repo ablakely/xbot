@@ -33,6 +33,7 @@ void eprint(char *fmt, ...)
     xlog("%s", bufout);
 }
 
+
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 38)) || defined(_WIN32)
 void strlcpy(char *to, const char *from, int len)
 {
@@ -48,6 +49,7 @@ char *basename(char *path)
     return p ? p + 1 : path;
 }
 #endif
+
 
 char *skip(char *s, char c)
 {

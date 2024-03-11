@@ -21,6 +21,7 @@
 #ifdef _WIN32
 #include <winsock2.h>
 #include <ws2tcpip.h>
+#include <schannel.h>
 #define FDOPEN _fdopen
 #define SETBUF setbuf
 #else
@@ -29,6 +30,9 @@
 #include <netdb.h>
 #include <netinet/in.h>
 #include <sys/socket.h>
+#include <arpa/inet.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #define FDOPEN fdopen
 #define SETBUF setbuf
 #endif
@@ -40,6 +44,43 @@ void irc_connect(struct irc_conn *bot)
     WSADATA wsaData;
 	struct sockaddr_in server;
     struct hostent *host;
+
+    // SChannel stuff
+    SCHANNEL_CRED schannelCred;
+    CtxtHandle ctxtHandle;
+    SecBufferDesc outBufferDesc;
+    SecBuffer outBuffer;
+    SECURITY_STATUS secStatus;
+    DWORD dwSSPIFlags;
+
+    if (bot->use_ssl)
+    {
+        ZeroMemory(&schannelCred, sizeof(schannelCred));
+        ZeroMemory(&ctxtHandle, sizeof(ctxtHandle));
+        ZeroMemory(&outBufferDesc, sizeof(outBufferDesc));
+        ZeroMemory(&outBuffer, sizeof(outBuffer));
+
+        // init outbufferdesc and outbuffer
+        outBufferDesc.ulVersion = SECBUFFER_VERSION;
+        outBufferDesc.cBuffers = 1;
+        outBufferDesc.pBuffers = &outBuffer;
+        outBuffer.BufferType = SECBUFFER_TOKEN;
+        outBuffer.cbBuffer = 0;
+        outBuffer.pvBuffer = NULL;
+
+        
+        // setup the credentials
+        schannelCred.dwVersion = SCHANNEL_CRED_VERSION;
+        schannelCred.grbitEnabledProtocols = SP_PROT_TLS1_2_CLIENT;
+        schannelCred.dwFlags = SCH_CRED_NO_DEFAULT_CREDS | SCH_CRED_NO_SYSTEM_MAPPER;
+        schannelCred.cCreds = 1;
+        schannelCred.paCred = &bot->cred;
+        schannelCred.hRootStore = NULL;
+        schannelCred.dwMinimumCipherStrength = 128;
+        schannelCred.dwMaximumCipherStrength = 128;
+        schannelCred.dwSessionLifespan = 0;
+    }
+
 
     sprintf(titlebuf, "xbot [connecting]: %s:%s", bot->host, bot->port);
     SetConsoleTitle(titlebuf);
@@ -89,12 +130,58 @@ void irc_connect(struct irc_conn *bot)
 		return;
 	}
 
+    if (bot->use_ssl)
+    {
+        // perform the handshake
+        secStatus = InitalizeSecurityContet(NULL, NULL, NULL, dwSSPIFlags, 0, 0, NULL, 0, &ctxtHandle, &outBufferDesc, NULL, NULL);
+        if (secStatus != SEC_I_CONTINUE_NEEDED)
+        {
+            eprint("Error: Handshake failed\n");
+            exit(EXIT_FAILURE);
+        }
+
+
+        // send the handshake
+        if (send(bot->srv_fd, outBuffer.pvBuffer, outBuffer.cbBuffer, 0) == SOCKET_ERROR)
+        {
+            eprint("Error: Handshake failed\n");
+            exit(EXIT_FAILURE);
+        }
+
+    }
+
     sprintf(titlebuf, "xbot [connected]: %s:%s", bot->host, bot->port);
     SetConsoleTitle(titlebuf);
 #else
     int srv_fd;
     struct addrinfo hints;
     struct addrinfo *res, *r;
+
+    if (bot->use_ssl)
+    {
+        SSL_library_init();
+        SSL_load_error_strings();
+        bot->ctx = SSL_CTX_new(SSLv23_client_method());
+        if (bot->ctx == NULL)
+        {
+            eprint("Error: Cannot create SSL context\n");
+        }
+
+        if (bot->verify_ssl)
+        {
+            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_PEER, NULL);
+        }
+        else
+        {
+            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_NONE, NULL);
+        }
+
+        if ((bot->ssl = SSL_new(bot->ctx)) == NULL)
+        {
+            eprint("Error: Cannot create SSL object\n");
+        }
+    }
+    
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family		= AF_UNSPEC;
@@ -126,8 +213,24 @@ void irc_connect(struct irc_conn *bot)
         eprint("[IRC] Error: Cannot connect to host '%s'\n", bot->host);
     }
 
-    xlog("[IRC] Connected!\n");
+
+    if (bot->use_ssl)
+    {
+        if (SSL_set_fd(bot->ssl, srv_fd) == 0)
+        {
+            eprint("Error: Cannot set SSL file descriptor\n");
+        }
+
+        if (SSL_connect(bot->ssl) != 1)
+        {
+            eprint("Error: Cannot connect to SSL server\n");
+        }
+
+        bot->ssl_fd = srv_fd;
+    }
+
     bot->srv_fd = FDOPEN(srv_fd, "r+");
+    xlog("[IRC] Connected!\n");
 #endif
 }
 
@@ -137,8 +240,11 @@ void irc_auth(struct irc_conn *bot)
     irc_raw(bot, "USER %s \" %s :%s", bot->user, bot->host, bot->real_name);
 
 #ifndef _WIN32
-    fflush(bot->srv_fd);
-    SETBUF(bot->srv_fd, NULL);
+    if (!bot->use_ssl)
+    {
+        fflush(bot->srv_fd);
+        SETBUF(bot->srv_fd, NULL);
+    }
 #endif
 }
 
@@ -182,7 +288,18 @@ void irc_raw(struct irc_conn *bot, char *fmt, ...)
 	sprintf(outbuf, "%s\r\n", bot->out);
 	send(bot->srv_fd, outbuf, strlen(outbuf), 0);
 #else
-    fprintf(bot->srv_fd, "%s\r\n", bot->out);
+    if (bot->use_ssl)
+    {
+        sprintf(outbuf, "%s\r\n", bot->out);
+        if (SSL_write(bot->ssl, outbuf, strlen(outbuf)) <= 0)
+        {
+            eprint("Error: Cannot write to SSL server\n");
+        }
+    }
+    else
+    {
+        fprintf(bot->srv_fd, "%s\r\n", bot->out);
+    }
 #endif
 }
 

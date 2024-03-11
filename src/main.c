@@ -32,15 +32,19 @@ static time_t trespond;
 
 int main(int argc, char **argv)
 {
-    int n;
+    int n = 0;
     fd_set rd;
     struct irc_conn bot;
     struct timeval tv;
     struct timeval last_ping;
     char conf[1024];
+    unsigned long ssl_err;
 
     char *p;
-	int bytesRecv;
+    char buf[1024];
+	int bytesRecv = 0;
+    int totalBytesRecv = 0;
+
 
 #ifdef _WIN32
     HICON hIcon;
@@ -146,8 +150,15 @@ int main(int argc, char **argv)
 #ifdef _WIN32
 		FD_SET(bot.srv_fd, &rd);
 #else
-		FD_SET(0, &rd);
-        FD_SET(fileno(bot.srv_fd), &rd);
+        if (bot.use_ssl)
+        {
+            FD_SET(SSL_get_fd(bot.ssl), &rd);
+        }
+        else
+        {
+            FD_SET(0, &rd);
+            FD_SET(fileno(bot.srv_fd), &rd);
+        }
 #endif
         tv.tv_sec  = 1;
         tv.tv_usec = 0;
@@ -163,7 +174,7 @@ int main(int argc, char **argv)
 			return -1;
 		}
 #else
-        n = select(fileno(bot.srv_fd) + 1, &rd, 0, 0, &tv);
+        n = select(bot.use_ssl ? bot.ssl_fd + 1 : fileno(bot.srv_fd) + 1, &rd, 0, 0, &tv);
         if (n < 0)
 		{
             if (errno == EINTR)
@@ -229,16 +240,60 @@ int main(int argc, char **argv)
 
             free(p);
 #else
-		if (FD_ISSET(fileno(bot.srv_fd), &rd))
+        if (FD_ISSET(bot.use_ssl ? bot.ssl_fd : fileno(bot.srv_fd), &rd))
 		{
-            if (fgets(bot.in, INBUF_SIZE, bot.srv_fd) == NULL)
+            if (bot.use_ssl)
             {
-                eprint("xbot: remote host closed connection\n");
-                return 0;
+                bytesRecv = SSL_read(bot.ssl, bot.in, INBUF_SIZE);
+                if (bytesRecv <= 0)
+                {
+                    eprint("xbot: error on SSL_read()\n");
+
+                    ssl_err = ERR_get_error();
+                    if (ssl_err)
+                    {
+                        eprint("SSL error: %s\n", ERR_error_string(ssl_err, NULL));
+                    }
+
+
+                    return -1;
+
+                }
+
+                bot.in[bytesRecv] = '\0';
+            
+                while (1)
+                {
+                    // remove \r
+                    p = strchr(bot.in, '\r');
+                    p = strchr(bot.in, '\n');
+                    if (p == NULL)
+                        break;
+
+                    *p = '\0';
+
+                    // remove \r at end of line
+                    if (p[-1] == '\r')
+                        p[-1] = '\0';
+
+                    irc_parse_raw(&bot, bot.in);
+                    memmove(bot.in, p + 1, strlen(p + 1) + 1);
+                }
+
+                free(p);
+            }
+            else
+            {
+                if (fgets(bot.in, INBUF_SIZE, bot.srv_fd) == NULL)
+                {
+                    eprint("xbot: remote host closed connection\n");
+                    return 0;
+                }
+
+                printf("recv: [%s]\n", bot.in);
+                irc_parse_raw(&bot, bot.in);
             }
 
-			printf("recv: %s\r\n", bot.in);
-            irc_parse_raw(&bot, bot.in);
 #endif
             trespond = time(NULL);
         }

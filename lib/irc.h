@@ -18,10 +18,12 @@
 #include <winsock2.h>
 #else
 #include <stdbool.h>
+#include <openssl/ssl.h>
+#include <openssl/err.h>
 #endif
 
-#define OUTBUF_SIZE 60000
-#define INBUF_SIZE 60000
+#define OUTBUF_SIZE 1200000
+#define INBUF_SIZE 1200000
 
 struct irc_conn
 {
@@ -29,6 +31,9 @@ struct irc_conn
 	SOCKET srv_fd;
 #else
 	FILE *srv_fd;
+    int ssl_fd;
+    SSL *ssl;
+    SSL_CTX *ctx;
 #endif
 
     char nick[50];
@@ -37,6 +42,14 @@ struct irc_conn
     char host[256];
     char port[5];
     char real_name[512];
+
+#ifdef _WIN32
+    BOOL use_ssl;
+    BOOL verify_ssl;
+#else
+    bool use_ssl;
+    bool verify_ssl;
+#endif
 
     char db_file[256];
     char log_file[256];

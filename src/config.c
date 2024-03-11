@@ -13,6 +13,7 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
     const config_setting_t *autoload;
     const char *base = (const char*)malloc(sizeof(char) * 1024);
     const char *mod  = NULL;
+    int boolbase;
     char *modpath    = (char *)malloc(sizeof(char) * 500);
 
 
@@ -53,6 +54,13 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
 
     if (config_lookup_string(cf, "bot.log", &base))
         strlcpy(bot.log_file, base, sizeof bot.log_file);
+
+    if (config_lookup_bool(cf, "server.ssl", &boolbase))
+        bot.use_ssl = boolbase;
+
+    if (config_lookup_bool(cf, "server.ssl_verify", &boolbase))
+        bot.verify_ssl = boolbase;
+
 
     config_destroy(cf);
 

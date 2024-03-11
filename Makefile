@@ -1,6 +1,6 @@
 CC=gcc
 CFLAGS=-g  -std=gnu99 -c -lconfig -ldl -I./lib
-BINFLAGS=-g -rdynamic -ldl -lconfig 
+BINFLAGS=-g -rdynamic -ldl -lconfig -lssl -lcrypto 
 SRC=./src
 OBJ=./build
 OBJECTS=$(OBJ)/*.o
