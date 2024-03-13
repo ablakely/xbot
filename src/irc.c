@@ -42,19 +42,33 @@ void irc_connect(struct irc_conn *bot)
 	struct sockaddr_in server;
     struct hostent *host;
 
-    SCHANNEL_CEAD cred = {
-        .dwVersion = SCHANNEL_CRED_VERSION,
-        .dwFlags = SCH_USE_STRONG_CRYPTO
-            | SCH_CRED_AUTO_CRED_VALIDATION
-            | SCH_CRED_NO_DEFAULT_CREDS
-        .grbitEnabledProtocols = SP_PROT_TLS1_2,
-    };
-
-    CtxtHandle *context = NULL;
-    int res = 0;
-
     sprintf(titlebuf, "xbot [connecting]: %s:%s", bot->host, bot->port);
     SetConsoleTitle(titlebuf);
+
+    if (bot->use_ssl)
+    {
+        SSL_library_init();
+        SSL_load_error_strings();
+        bot->ctx = SSL_CTX_new(SSLv23_client_method());
+        if (bot->ctx == NULL)
+        {
+            eprint("Error: Cannot create SSL context\n");
+        }
+
+        if (bot->verify_ssl)
+        {
+            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_PEER, NULL);
+        }
+        else
+        {
+            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_NONE, NULL);
+        }
+
+        if ((bot->ssl = SSL_new(bot->ctx)) == NULL)
+        {
+            eprint("Error: Cannot create SSL object\n");
+        }
+    }
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         eprint("WSAStartup failed.\n");
@@ -101,19 +115,20 @@ void irc_connect(struct irc_conn *bot)
 		return;
 	}
 
+
     if (bot->use_ssl)
     {
-        if (AcquireCredentialsHandle(NULL, UNISP_NAME, SECPKG_CRED_OUTBOUND, NULL, &cred, NULL, NULL, &bot->cred, NULL) != SEC_E_OK)
+        if (SSL_set_fd(bot->ssl, bot->srv_fd) == 0)
         {
-            eprint("Error: Cannot acquire credentials handle\n");
-            closesocket(bot->srv_fd);
-            WSACleanup();
-
-            return;
+            eprint("Error: Cannot set SSL file descriptor\n");
         }
 
-        bot->recvCount = bot->usedCount = bot->availableCount = 0;
-        bot->decrypted = NULL;
+        if (SSL_connect(bot->ssl) != 1)
+        {
+            eprint("Error: Cannot connect to SSL server\n");
+        }
+
+        bot->ssl_fd = bot->srv_fd;
     }
 
     sprintf(titlebuf, "xbot [connected]: %s:%s", bot->host, bot->port);
@@ -250,10 +265,6 @@ void irc_raw(struct irc_conn *bot, char *fmt, ...)
 
 	sprintf(outbuf, "%s\r\n", bot->out);
     printf("<< %s\n", outbuf);
-#ifdef _WIN32
-	sprintf(outbuf, "%s\r\n", bot->out);
-	send(bot->srv_fd, outbuf, strlen(outbuf), 0);
-#else
     if (bot->use_ssl)
     {
         sprintf(outbuf, "%s\r\n", bot->out);
@@ -264,9 +275,13 @@ void irc_raw(struct irc_conn *bot, char *fmt, ...)
     }
     else
     {
+#ifdef _WIN32
+	sprintf(outbuf, "%s\r\n", bot->out);
+	send(bot->srv_fd, outbuf, strlen(outbuf), 0);
+#else
         fprintf(bot->srv_fd, "%s\r\n", bot->out);
-    }
 #endif
+    }
 }
 
 
