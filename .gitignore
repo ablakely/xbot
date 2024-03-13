@@ -9,8 +9,8 @@ UpgradeLog*.XML
 xbot.log
 xbot.db
 *.so
-*.dll
-*.lib
+./*.dll
+./*.lib
 *.obj
 *.exp
 *.exe
