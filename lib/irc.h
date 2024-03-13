@@ -15,20 +15,37 @@
 #include "db.h"
 
 #ifdef _WIN32
+#define OUTBUF_SIZE DEFAULT_BUFLEN
+#define INBUF_SIZE DEFAULT_BUFLEN
 #include <winsock2.h>
+#define SECURITY_WIN32
+#include <schannel.h>
+#include <wincrypt.h>
+#include <shlwapi.h>
+
 #else
+#define OUTBUF_SIZE 1200000
+#define INBUF_SIZE 1200000
 #include <stdbool.h>
 #include <openssl/ssl.h>
 #include <openssl/err.h>
 #endif
 
-#define OUTBUF_SIZE 1200000
-#define INBUF_SIZE 1200000
 
 struct irc_conn
 {
 #ifdef _WIN32
 	SOCKET srv_fd;
+
+    SCHANNEL_CRED schannelCred;
+    CtxtHandle ctxtHand;
+    SecBufferDesc outBufferDesc;
+    SecBuffer outBuffer;
+    SecBufferDesc inBufferDesc;
+    SecBuffer inBuffer;
+    SECURITY_STATUS secStatus;
+    DWORD dwSSPIFlags;
+
 #else
 	FILE *srv_fd;
     int ssl_fd;

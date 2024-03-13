@@ -4,9 +4,6 @@
 #include "irc.h"
 #include "events.h"
 
-#ifdef _WIN32
-#include <windows.h>
-#endif
 
 struct module {
     char name[25];

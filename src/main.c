@@ -203,28 +203,62 @@ int main(int argc, char **argv)
 #ifdef _WIN32
         if (FD_ISSET(bot.srv_fd, &rd))
 		{
-			bytesRecv = recv(bot.srv_fd, bot.in, INBUF_SIZE, 0);
-			if (bytesRecv == SOCKET_ERROR)
-			{
-				eprint("Error receiving data: %d\n", WSAGetLastError());
-				closesocket(bot.srv_fd);
-				WSACleanup();
-
-				return -1;
-			}
-
-            if (bytesRecv == 0)
+            if (bot->use_ssl)
             {
-                eprint("xbot: remote host closed connection\n");
-                return 0;
+                bytesRecv = recv(bot.srv_fd, bot.inBuffer.pvBuffer, DEFAULT_BUFLEN, 0);
+                if (bytesRecv == SOCKET_ERROR)
+                {
+                    eprint("Error receiving data: %d\n", WSAGetLastError());
+                    closesocket(bot.srv_fd);
+                    WSACleanup();
+
+                    return -1;
+                }
+
+                if (bytesRecv == 0)
+                {
+                    eprint("xbot: remote host closed connection\n");
+                    return 0;
+                }
+
+                bot.inBuffer.cbBuffer = bytesRecv;
+
+                secStatus = DecryptMessage(&bot->ctxtHandle, &bot->inBuffer, 0, NULL);
+                if (secStatus != SEC_E_OK)
+                {
+                    eprint("xbot: error on DecryptMessage()\n");
+                    return -1;
+                }
+
+                strlcpy(bot.in, bot.inBuffer.pvBuffer, bot.inBuffer.cbBuffer);
+                bot.in[bot.inBuffer.cbBuffer] = '\0';
+
+                printf("recv: %s\r\n", bot.in);
+            }
+            else
+            {
+                bytesRecv = recv(bot.srv_fd, bot.in, INBUF_SIZE, 0);
+                if (bytesRecv == SOCKET_ERROR)
+                {
+                    eprint("Error receiving data: %d\n", WSAGetLastError());
+                    closesocket(bot.srv_fd);
+                    WSACleanup();
+
+                    return -1;
+                }
+
+                if (bytesRecv == 0)
+                {
+                    eprint("xbot: remote host closed connection\n");
+                    return 0;
+                }
+
+			    bot.in[bytesRecv] = '\0';
+
+			    printf("recv: %s\r\n", bot.in);
             }
 
-			bot.in[bytesRecv] = '\0';
-
-			printf("recv: %s\r\n", bot.in);
-
             // split bot.in into lines by \r\n and parse each one
-
             while (1)
             {
                 // remove \r
