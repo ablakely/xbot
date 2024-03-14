@@ -5,6 +5,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdarg.h>
 
 #ifdef _WIN32
 #include <windows.h>
@@ -222,10 +223,23 @@ void unload_module(struct irc_conn *bot, char *where, char *file)
     int i;
     for (i = 0; i < mods->count; i++)
     {
-        (*mods->modules[i].unload)();
-
         if (strcmp(mods->modules[i].fname, file) == 0)
         {
+            if (mods->modules[i].flags & MOD_FLAG_NO_UNLOAD)
+            {
+                if (strcmp(PRIVMSG_CHAN, where))
+                {
+                    irc_notice(bot, where, "Module '%s' cannot be unloaded.", file);
+                }
+                else
+                {
+                    xlog("[module] Module '%s' cannot be unloaded.\n", file);
+                }
+                return;
+            }
+
+
+            (*mods->modules[i].unload)();
 #ifdef _WIN32
             FreeLibrary(mods->modules[i].handle);
 #else
@@ -270,8 +284,10 @@ void list_modules(struct irc_conn *bot, char *where)
     free(tmp);
 }
 
-MY_API void register_module(char *name, char *author, char *version, char *description)
+MY_API void register_module(char *name, char *author, char *version, char *description, ...)
 {
+    va_list args;
+
     if (mods->count >= 512)
     {
         eprint("Error: Too many modules loaded.\n");
@@ -282,6 +298,17 @@ MY_API void register_module(char *name, char *author, char *version, char *descr
     strlcpy(mods->modules[mods->count].author, author, 50);
     strlcpy(mods->modules[mods->count].version, version, 10);
     strlcpy(mods->modules[mods->count].description, description, 256);
+
+    va_start(args, description);
+
+    mods->modules[mods->count].flags = va_arg(args, int);
+
+    if (mods->modules[mods->count].flags & MOD_FLAG_NO_UNLOAD)
+    {
+        xlog("[module] Module '%s' cannot be unloaded.\n", name);
+    }
+
+    va_end(args);
 }
 
 MY_API void unregister_module(char *name)

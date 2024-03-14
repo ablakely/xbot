@@ -4,6 +4,11 @@
 #include "irc.h"
 #include "events.h"
 
+enum module_flags
+{
+    MOD_FLAG_NO_UNLOAD = 1,
+    MOD_FLAG_NO_RELOAD = 2
+};
 
 struct module {
     char name[25];
@@ -12,6 +17,7 @@ struct module {
     char description[256];
 
     char fname[256];
+    int flags;
 
 #ifdef _WIN32
     HMODULE handle;
@@ -37,7 +43,8 @@ void unload_module(struct irc_conn *bot, char *where, char *file);
 void list_modules(struct irc_conn *bot, char *where);
 void set_bot(struct irc_conn *b);
 void set_bot_db(struct db_table *db);
-MY_API void register_module(char *name, char *author, char *version, char *description);
+
+MY_API void register_module(char *name, char *author, char *version, char *description, ...);
 MY_API void unregister_module(char *name);
 MY_API struct mods *get_mods();
 MY_API struct irc_conn *get_bot();

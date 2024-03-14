@@ -17,9 +17,6 @@
 #define OUTBUF_SIZE 1200000
 #define INBUF_SIZE 1200000
 
-#include <openssl/ssl.h>
-#include <openssl/err.h>
-
 #ifdef _WIN32
 #include <winsock2.h>
 #else
@@ -29,16 +26,16 @@
 
 struct irc_conn
 {
+    int ssl_fd;
+
+    int ssl_fdi;
+    int srv_fdi;
+
 #ifdef _WIN32
 	SOCKET srv_fd;
 #else
 	FILE *srv_fd;
 #endif
-
-    int ssl_fd;
-    SSL *ssl;
-    SSL_CTX *ctx;
-
     char nick[50];
     char user[50];
     char admin[256];
@@ -49,15 +46,24 @@ struct irc_conn
 #ifdef _WIN32
     BOOL use_ssl;
     BOOL verify_ssl;
+    
+    FARPROC sslmod_init;
+    FARPROC sslmod_connect;
+    FARPROC sslmod_read;
+    FARPROC sslmod_write;
+    FARPROC sslmod_cleanup;
+    FARPROC sslmod_get_fd;
 #else
     bool use_ssl;
     bool verify_ssl;
     bool sslmod_loaded;
 
+    void (*sslmod_init)();
     void (*sslmod_connect)();
     int (*sslmod_read)();
     int (*sslmod_write)();
     void (*sslmod_cleanup)();
+    int (*sslmod_get_fd)();
 
 #endif
 
@@ -74,9 +80,20 @@ typedef struct handler event_handler;
 
 void irc_connect(struct irc_conn *bot);
 void irc_auth(struct irc_conn *bot);
-void set_ssl_connect(struct irc_conn *bot, void *func);
-void set_ssl_read(struct irc_conn *bot, void *func);
-void set_ssl_write(struct irc_conn *bot, void *func);
+
+MY_API void set_ssl_init(struct irc_conn *bot, void *func);
+MY_API void set_ssl_connect(struct irc_conn *bot, void *func);
+MY_API void set_ssl_read(struct irc_conn *bot, void *func);
+MY_API void set_ssl_write(struct irc_conn *bot, void *func);
+MY_API void set_ssl_cleanup(struct irc_conn *bot, void *func);
+MY_API void set_ssl_get_fd(struct irc_conn *bot, void *func);
+
+MY_API void ssl_init();
+MY_API void ssl_connect();
+MY_API int ssl_read(char *buf, int len);
+MY_API int ssl_write(char *buf, int len);
+MY_API void ssl_cleanup();
+MY_API int ssl_get_fd();
 
 MY_API void irc_notice(struct irc_conn *bot, char *to, char *fmt, ...);
 MY_API void irc_privmsg(struct irc_conn *bot, char *to, char *fmt, ...);

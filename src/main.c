@@ -149,7 +149,7 @@ int main(int argc, char **argv)
 
         if (bot.use_ssl)
         {
-            FD_SET(SSL_get_fd(bot.ssl), &rd);
+            FD_SET(bot.ssl_fd, &rd);
         }
         else
         {
@@ -210,20 +210,10 @@ int main(int argc, char **argv)
 		{
             if (bot.use_ssl)
             {
-                bytesRecv = SSL_read(bot.ssl, bot.in, INBUF_SIZE);
+                bytesRecv = ssl_read(bot.in, INBUF_SIZE);
                 if (bytesRecv <= 0)
                 {
-                    eprint("xbot: error on SSL_read()\n");
-
-                    ssl_err = ERR_get_error();
-                    if (ssl_err)
-                    {
-                        eprint("SSL error: %s\n", ERR_error_string(ssl_err, NULL));
-                    }
-
-
                     return -1;
-
                 }
 
                 bot.in[bytesRecv] = '\0';

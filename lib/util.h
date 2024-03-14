@@ -34,7 +34,7 @@
 #define MY_API
 #endif
 
-void eprint(char *fmt, ...);
+MY_API void eprint(char *fmt, ...);
 
 #if defined(__GLIBC__) && (__GLIBC__ < 2 || (__GLIBC__ == 2 && __GLIBC_MINOR__ < 38)) || defined(_WIN32)
 MY_API void strlcpy(char *to, const char *from, int len);

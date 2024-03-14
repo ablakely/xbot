@@ -11,6 +11,7 @@
 #include "irc.h"
 #include "util.h"
 #include "events.h"
+#include "module.h"
 #include "channel.h"
 
 #include <string.h>
@@ -44,29 +45,7 @@ void irc_connect(struct irc_conn *bot)
     SetConsoleTitle(titlebuf);
 
     if (bot->use_ssl)
-    {
-        SSL_library_init();
-        SSL_load_error_strings();
-        bot->ctx = SSL_CTX_new(SSLv23_client_method());
-        if (bot->ctx == NULL)
-        {
-            eprint("Error: Cannot create SSL context\n");
-        }
-
-        if (bot->verify_ssl)
-        {
-            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_PEER, NULL);
-        }
-        else
-        {
-            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_NONE, NULL);
-        }
-
-        if ((bot->ssl = SSL_new(bot->ctx)) == NULL)
-        {
-            eprint("Error: Cannot create SSL object\n");
-        }
-    }
+        ssl_init();
 
     if (WSAStartup(MAKEWORD(2, 2), &wsaData) != 0) {
         eprint("WSAStartup failed.\n");
@@ -115,52 +94,16 @@ void irc_connect(struct irc_conn *bot)
 
 
     if (bot->use_ssl)
-    {
-        if (SSL_set_fd(bot->ssl, bot->srv_fd) == 0)
-        {
-            eprint("Error: Cannot set SSL file descriptor\n");
-        }
-
-        if (SSL_connect(bot->ssl) != 1)
-        {
-            eprint("Error: Cannot connect to SSL server\n");
-        }
-
-        bot->ssl_fd = bot->srv_fd;
-    }
+        ssl_connect();
 
     sprintf(titlebuf, "xbot [connected]: %s:%s", bot->host, bot->port);
     SetConsoleTitle(titlebuf);
 #else
-    int srv_fd;
     struct addrinfo hints;
     struct addrinfo *res, *r;
 
     if (bot->use_ssl)
-    {
-        SSL_library_init();
-        SSL_load_error_strings();
-        bot->ctx = SSL_CTX_new(SSLv23_client_method());
-        if (bot->ctx == NULL)
-        {
-            eprint("Error: Cannot create SSL context\n");
-        }
-
-        if (bot->verify_ssl)
-        {
-            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_PEER, NULL);
-        }
-        else
-        {
-            SSL_CTX_set_verify(bot->ctx, SSL_VERIFY_NONE, NULL);
-        }
-
-        if ((bot->ssl = SSL_new(bot->ctx)) == NULL)
-        {
-            eprint("Error: Cannot create SSL object\n");
-        }
-    }
-    
+        ssl_init();
 
     memset(&hints, 0, sizeof hints);
     hints.ai_family		= AF_UNSPEC;
@@ -173,17 +116,17 @@ void irc_connect(struct irc_conn *bot)
 
     for (r = res; r; r->ai_next)
     {
-        if ((srv_fd = socket(r->ai_family, r->ai_socktype, r->ai_protocol)) == -1)
+        if ((bot->srv_fdi = socket(r->ai_family, r->ai_socktype, r->ai_protocol)) == -1)
         {
             continue;
         }
 
-        if (connect(srv_fd, r->ai_addr, r->ai_addrlen) == 0)
+        if (connect(bot->srv_fdi, r->ai_addr, r->ai_addrlen) == 0)
         {
             break;
         }
 
-        close(srv_fd);
+        close(bot->srv_fdi);
     }
 
     freeaddrinfo(res);
@@ -194,21 +137,9 @@ void irc_connect(struct irc_conn *bot)
 
 
     if (bot->use_ssl)
-    {
-        if (SSL_set_fd(bot->ssl, srv_fd) == 0)
-        {
-            eprint("Error: Cannot set SSL file descriptor\n");
-        }
+        ssl_connect();
 
-        if (SSL_connect(bot->ssl) != 1)
-        {
-            eprint("Error: Cannot connect to SSL server\n");
-        }
-
-        bot->ssl_fd = srv_fd;
-    }
-
-    bot->srv_fd = FDOPEN(srv_fd, "r+");
+    bot->srv_fd = FDOPEN(bot->srv_fdi, "r+");
     xlog("[IRC] Connected!\n");
 #endif
 }
@@ -225,6 +156,84 @@ void irc_auth(struct irc_conn *bot)
         SETBUF(bot->srv_fd, NULL);
     }
 #endif
+}
+
+void set_ssl_init(struct irc_conn *bot, void *func)
+{
+    bot->sslmod_init = func;
+}
+
+void set_ssl_connect(struct irc_conn *bot, void *func)
+{
+    bot->sslmod_connect = func;
+}
+
+void set_ssl_write(struct irc_conn *bot, void *func)
+{
+    bot->sslmod_write = func;
+}
+
+void set_ssl_read(struct irc_conn *bot, void *func)
+{
+    bot->sslmod_read = func;
+}
+
+void set_ssl_cleanup(struct irc_conn *bot, void *func)
+{
+    bot->sslmod_cleanup = func;
+}
+
+void set_ssl_get_fd(struct irc_conn *bot, void *func)
+{
+    bot->sslmod_get_fd = func;
+}
+
+void ssl_init()
+{
+    struct irc_conn *bot = get_bot();
+    void *sslinit = bot->sslmod_init;
+
+    ((void (*)())sslinit)();
+}
+
+void ssl_connect()
+{
+    struct irc_conn *bot = get_bot();
+    void *sslconnect = bot->sslmod_connect;
+
+    ((void (*)())sslconnect)();
+}
+
+int ssl_read(char *buf, int len)
+{
+    struct irc_conn *bot = get_bot();
+    void *sslread = bot->sslmod_read;
+
+    return ((int (*)(char *, int))sslread)(buf, len);
+}
+
+int ssl_write(char *buf, int len)
+{
+    struct irc_conn *bot = get_bot();
+    void *sslwrite = bot->sslmod_write;
+
+    return ((int (*)(char *, int))sslwrite)(buf, len);
+}
+
+void ssl_cleanup()
+{
+    struct irc_conn *bot = get_bot();
+    void *sslcleanup = bot->sslmod_cleanup;
+
+    ((void (*)())sslcleanup)();
+}
+
+int ssl_get_fd()
+{
+    struct irc_conn *bot = get_bot();
+    void *sslgetfd = bot->sslmod_get_fd;
+
+    return ((int (*)())sslgetfd)();
 }
 
 void irc_notice(struct irc_conn *bot, char *to, char *fmt, ...)
@@ -266,7 +275,7 @@ void irc_raw(struct irc_conn *bot, char *fmt, ...)
     if (bot->use_ssl)
     {
         sprintf(outbuf, "%s\r\n", bot->out);
-        if (SSL_write(bot->ssl, outbuf, strlen(outbuf)) <= 0)
+        if (ssl_write(outbuf, strlen(outbuf)) <= 0)
         {
             eprint("Error: Cannot write to SSL server\n");
         }
