@@ -49,7 +49,8 @@ These are commands which allow the bot's admin to control it once it's connected
 Modules are the main way to extend the functionality of the bot. They are loaded at runtime and can be unloaded and reloaded without restarting the bot.
 
 Currently, the following modules are included:
-* lua
+* lua - Provides Lua scripting support
+* openssl - Provides SSL support
 * test
 
 ## Windows Support Notes
