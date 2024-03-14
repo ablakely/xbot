@@ -55,8 +55,10 @@ Currently, the following modules are included:
 
 ## Windows Support Notes
 ### Windows XP
-OpenSSL doesn't work on Windows XP, without some kind of kernel extensions for XP.
-Luarocks doesn't work on Windows XP due to symlinks not being supported.
+* OpenSSL doesn't work on Windows XP, without some kind of kernel extensions for XP.
+* Luarocks doesn't work on Windows XP due to symlinks not being supported.
+
+These issues might be resolved with a project like [onecore](https://github.com/Skulltrail192/One-Core-API-Binaries) but further testing is needed.
 
 ## License
 xbot is licensed under the MIT License. See the LICENSE file for more information.
