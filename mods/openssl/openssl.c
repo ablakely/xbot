@@ -15,8 +15,10 @@ int ssl_fd;
 SSL *ssl;
 SSL_CTX *ctx;
 
-MY_API void sslmod_init(struct irc_conn *bot)
+MY_API void sslmod_init()
 {
+    struct irc_conn *bot = get_bot();
+
     SSL_library_init();
     SSL_load_error_strings();
     ctx = SSL_CTX_new(SSLv23_client_method());
@@ -25,12 +27,14 @@ MY_API void sslmod_init(struct irc_conn *bot)
         eprint("Error: Cannot create SSL context\n");
     }
 
-    if (bot->verify_ssl)
+    if (bot->verify_ssl == true)
     {
+        printf("SSL: Verifying server certificate\n");
         SSL_CTX_set_verify(ctx, SSL_VERIFY_PEER, NULL);
     }
     else
     {
+        printf("SSL: Not verifying server certificate\n");
         SSL_CTX_set_verify(ctx, SSL_VERIFY_NONE, NULL);
     }
 
@@ -42,12 +46,12 @@ MY_API void sslmod_init(struct irc_conn *bot)
 
 MY_API int get_ssl_fd()
 {
-    printf("ssl_fd: %d\n", ssl_fd);
     return ssl_fd;
 }
 
 MY_API void sslmod_connect()
 {
+    unsigned long ssl_err;
     struct irc_conn *bot = get_bot();
 
 #ifdef _WIN32
@@ -62,6 +66,12 @@ MY_API void sslmod_connect()
     if (SSL_connect(ssl) != 1)
     {
         eprint("Error: Cannot connect to SSL server\n");
+
+        ssl_err = ERR_get_error();
+        if (ssl_err)
+        {
+            eprint("SSL error: %s\n", ERR_error_string(ssl_err, NULL));
+        }
     }
 
 #ifdef _WIN32

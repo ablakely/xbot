@@ -36,6 +36,7 @@ struct irc_conn
 #else
 	FILE *srv_fd;
 #endif
+    char ssl_module[256];
     char nick[50];
     char user[50];
     char admin[256];

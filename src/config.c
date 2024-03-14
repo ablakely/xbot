@@ -14,8 +14,9 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
     const char *base = (const char*)malloc(sizeof(char) * 1024);
     const char *mod  = NULL;
     int boolbase;
-    char *modpath    = (char *)malloc(sizeof(char) * 500);
 
+    bot.verify_ssl = 0;
+    bot.use_ssl = 0;
 
     cf = &cfg;
     config_init(cf);
@@ -90,6 +91,22 @@ void run_autoload(struct irc_conn *bot)
         exit(-1);
     }
 
+    if (bot->use_ssl)
+    {
+        if (config_lookup_string(cf, "server.ssl_module", &base))
+        {
+            strlcpy(bot->ssl_module, base, sizeof bot->ssl_module);
+
+            // Load the SSL module
+#ifdef _WIN32
+            sprintf(modpath, "./mods/%s.dll", bot->ssl_module);
+#else
+            sprintf(modpath, "./mods/%s.so", bot->ssl_module);
+#endif
+            load_module(bot, "main", "runtime", modpath);
+        }
+    }
+
     autoload = config_lookup(cf, "mods.autoload");
     count    = config_setting_length(autoload);
 
@@ -105,4 +122,5 @@ void run_autoload(struct irc_conn *bot)
     }
 
     config_destroy(cf);
+    free(modpath);
 }
