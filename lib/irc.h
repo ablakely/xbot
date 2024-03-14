@@ -52,6 +52,13 @@ struct irc_conn
 #else
     bool use_ssl;
     bool verify_ssl;
+    bool sslmod_loaded;
+
+    void (*sslmod_connect)();
+    int (*sslmod_read)();
+    int (*sslmod_write)();
+    void (*sslmod_cleanup)();
+
 #endif
 
     char db_file[256];
@@ -67,6 +74,9 @@ typedef struct handler event_handler;
 
 void irc_connect(struct irc_conn *bot);
 void irc_auth(struct irc_conn *bot);
+void set_ssl_connect(struct irc_conn *bot, void *func);
+void set_ssl_read(struct irc_conn *bot, void *func);
+void set_ssl_write(struct irc_conn *bot, void *func);
 
 MY_API void irc_notice(struct irc_conn *bot, char *to, char *fmt, ...);
 MY_API void irc_privmsg(struct irc_conn *bot, char *to, char *fmt, ...);

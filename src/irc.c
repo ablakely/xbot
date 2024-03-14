@@ -28,8 +28,6 @@
 #include <netinet/in.h>
 #include <sys/socket.h>
 #include <arpa/inet.h>
-#include <openssl/ssl.h>
-#include <openssl/err.h>
 #define FDOPEN fdopen
 #define SETBUF setbuf
 #endif
