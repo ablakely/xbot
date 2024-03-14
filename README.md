@@ -9,12 +9,22 @@ xbot is a modular IRC bot in C for Linux and Windows
 
 ## Building
 
+### Linux
 To build xbot use the following commands
 
 	make
     make mods
 
-Afterwords, just edit xbot.cfg and execute the xbot binary.
+### Windows
+To build xbot on Windows, you will need to use the Visual Studio solution file which is located in the root directory of the project.
+Currently only the debug build target is configured for the Visual Studio solution file. The release build target will be added in the future.
+
+All of the dependencies for xbot are included in the repository, so you should be able to build the project without any additional setup.
+
+Tested with Visual Studio 2010.
+
+## Configuration
+The bot will read xbot.cfg if none is specified at the command line with ```-c <file>```.
 
 ## Built-in Admin Commands
 
@@ -25,3 +35,21 @@ These are commands which allow the bot's admin to control it once it's connected
 * MODLIST
 * JOIN <channel>
 
+## Modules
+
+Modules are the main way to extend the functionality of the bot. They are loaded at runtime and can be unloaded and reloaded without restarting the bot.
+
+Currently, the following modules are included:
+* lua
+* test
+
+## Windows Support Notes
+### Windows XP
+OpenSSL doesn't work on Windows XP, without some kind of kernel extensions for XP.
+Luarocks doesn't work on Windows XP due to symlinks not being supported.
+
+## License
+xbot is licensed under the MIT License. See the LICENSE file for more information.
+
+---
+Written by Aaron Blakely. Copyright 2024.
