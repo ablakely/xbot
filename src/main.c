@@ -33,6 +33,7 @@ static time_t trespond;
 int main(int argc, char **argv)
 {
     int n = 0;
+    int linepos = 0;
     fd_set rd;
     struct irc_conn bot;
     struct timeval tv;
@@ -42,6 +43,7 @@ int main(int argc, char **argv)
 
     char *p;
     char buf[1024];
+    char linebuf[1024];
 	int bytesRecv = 0;
     int totalBytesRecv = 0;
 
@@ -217,29 +219,27 @@ int main(int argc, char **argv)
                 }
 
                 bot.in[bytesRecv] = '\0';
-                printf("recv: %s\r\n", bot.in);
-            
-                while (1)
+                
+                for (n = 0; n < bytesRecv; n++)
                 {
-                    // remove \r
-                    p = strchr(bot.in, '\r');
-                    p = strchr(bot.in, '\n');
-                    if (p == NULL)
-                        break;
+                    if (bot.in[n] == '\n')
+                    {
+                        linebuf[linepos] = '\0';
 
-                    *p = '\0';
+                        // remove \r at end of line
+                        if (linebuf[linepos - 1] == '\r')
+                            linebuf[linepos - 1] = '\0';
 
-                    // remove \r at end of line
-                    if (p[-1] == '\r')
-                        p[-1] = '\0';
-
-
-                    printf("recv: %s\r\n", bot.in);
-                    irc_parse_raw(&bot, bot.in);
-                    memmove(bot.in, p + 1, strlen(p + 1) + 1);
+                        printf("recv: %s\n", linebuf);
+                        irc_parse_raw(&bot, linebuf);
+                        linepos = 0;
+                    }
+                    else
+                    {
+                        linebuf[linepos] = bot.in[n];
+                        linepos++;
+                    }
                 }
-
-                free(p);
             }
             else
             {

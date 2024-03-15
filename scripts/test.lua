@@ -7,8 +7,8 @@ function test(nick, host, chan, text)
     -- check if text contains "hello"
 
 
-    if string.find(text, "hello") then
-        privmsg(chan, "Hello, " .. nick .. " from test.lua!!!")
+    if string.find(text, "h") then
+        privmsg(chan, "Hello, " .. nick .. " from test.lua")
     end
 end
 

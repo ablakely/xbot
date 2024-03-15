@@ -283,8 +283,8 @@ void irc_raw(struct irc_conn *bot, char *fmt, ...)
     else
     {
 #ifdef _WIN32
-	sprintf(outbuf, "%s\r\n", bot->out);
-	send(bot->srv_fd, outbuf, strlen(outbuf), 0);
+        sprintf(outbuf, "%s\r\n", bot->out);
+        send(bot->srv_fd, outbuf, strlen(outbuf), 0);
 #else
         fprintf(bot->srv_fd, "%s\r\n", bot->out);
 #endif
@@ -425,11 +425,12 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
         {
             add_channel(text);
             add_user_to_channel(user, host, text);
+            irc_raw(bot, "NAMES %s", text);
+
             fire_handler(bot, JOIN_MYSELF, user, host, text);
         }
         else
         {
-            add_channel(text);
             add_user_to_channel(user, host, text);
             fire_handler(bot, JOIN, user, host, text);
         }
@@ -456,6 +457,10 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
     else if (!strcmp("PING", raw))
     {
         irc_raw(bot, "PONG %s", text);
+    }
+    else if (!strcmp("PONG", raw))
+    {
+        irc_raw(bot, "PING %s", text);
     }
     else if (!strcmp("001", raw))
     {

@@ -93,6 +93,7 @@ MY_API void sslmod_write(char *buf, int len)
 MY_API int sslmod_read(char *buf, int len)
 {
     int n;
+    int read;
     unsigned long ssl_err;
 
     if ((n = SSL_read(ssl, buf, len)) <= 0)
@@ -107,6 +108,27 @@ MY_API int sslmod_read(char *buf, int len)
 
         return -1;
     }
+
+    // read until there's no more data
+    while (SSL_pending(ssl))
+    {
+        read = SSL_read(ssl, buf + n, len - n);
+        if (read <= 0)
+        {
+            eprint("xbot: error on SSL_read()\n");
+
+            ssl_err = ERR_get_error();
+            if (ssl_err)
+            {
+                eprint("SSL error: %s\n", ERR_error_string(ssl_err, NULL));
+            }
+
+            return -1;
+        }
+        n += read;
+    }
+
+
     return n;
 }
 

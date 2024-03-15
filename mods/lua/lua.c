@@ -363,7 +363,7 @@ void mod_init()
     lua_init_events();
 
     lua_init_handlers();
-    register_module("lua", "Aaron Blakely", "v0.1", "Lua module");
+    register_module("lua", "Aaron Blakely", "v0.1", "Lua module", MOD_FLAG_NONE);
 
     // load init.lua
     if (luaL_loadfile(lua.L, "./mods/lua/init.lua") != LUA_OK)

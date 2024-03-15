@@ -15,7 +15,7 @@
 #include "db.h"
 
 #define OUTBUF_SIZE 1200000
-#define INBUF_SIZE 1200000
+#define INBUF_SIZE  1200000
 
 #ifdef _WIN32
 #include <winsock2.h>

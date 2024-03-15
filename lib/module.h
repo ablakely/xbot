@@ -6,8 +6,8 @@
 
 enum module_flags
 {
+    MOD_FLAG_NONE = 0,
     MOD_FLAG_NO_UNLOAD = 1,
-    MOD_FLAG_NO_RELOAD = 2
 };
 
 struct module {
