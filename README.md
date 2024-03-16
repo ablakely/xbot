@@ -26,11 +26,7 @@ Tested with Visual Studio 2010.
 #### Modules
 As of current modules are built outside of the main build process. To build modules, you will need to either use the provided batch file or build them manually.
 
-To build the modules manually, you will need to use the following commands:
-
-    cd mods
-    .\buildmods.bat
-
+To build the modules you need to run ```buildmods.bat``` located in the mods directory.  This can be done from the command line or by double clicking the file.
 
 ## Configuration
 The bot will read xbot.cfg if none is specified at the command line with ```-c <file>```.

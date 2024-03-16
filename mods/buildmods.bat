@@ -2,6 +2,31 @@
 REM Description: Build all modules in the current directory
 setlocal enabledelayedexpansion
 
+if exist "C:\Program Files\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" (
+    pushd "C:\Program Files\Microsoft Visual Studio 10.0\VC"
+    call vcvarsall.bat
+    popd
+
+    goto BUILD
+)
+
+if exist "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC\vcvarsall.bat" (
+    pushd "C:\Program Files (x86)\Microsoft Visual Studio 10.0\VC"
+    call vcvarsall.bat
+    popd
+
+    goto BUILD
+)
+
+
+
+:WARNING
+echo Visual Studio 2010 not found, make sure to run vcvarsall.bat for your versions of Visual Studio
+echo or this script will fail
+pause
+
+
+:BUILD
 set subdirs=
 for /d %%a in (*) do (
     set subdirs=!subdirs! %%a
@@ -32,3 +57,4 @@ for %%a in (%subdirs%) do (
     )
 )
 
+echo Done building modules
