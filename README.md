@@ -28,7 +28,7 @@ As of current modules are built outside of the main build process. To build modu
 
 To build the modules manually, you will need to use the following commands:
 
-    cd modules
+    cd mods
     .\buildmods.bat
 
 
