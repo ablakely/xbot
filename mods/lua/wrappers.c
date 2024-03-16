@@ -1,7 +1,12 @@
 #include "lua.h"
 #include "channel.h"
 #include <stdlib.h>
+
+#ifdef _WIN32
+#include <lua.h>
+#else
 #include <lua5.3/lua.h>
+#endif
 
 void lua_init_wrappers()
 {
@@ -151,13 +156,14 @@ void ctcp_wrapper(lua_State *L)
 
 int get_user_host_wrapper(lua_State *L)
 {
+    char *host;
     char *user = (char *)lua_tostring(L, 1);
 
     if (!user)
         return 0;
 
 
-    char *host = get_user_host(user);
+    host = get_user_host(user);
 
     lua_pushstring(L, host);
 
@@ -166,12 +172,13 @@ int get_user_host_wrapper(lua_State *L)
 
 int get_user_user_wrapper(lua_State *L)
 {
+    char *usr;
     char *user = (char *)lua_tostring(L, 1);
 
     if (!user)
         return 0;
 
-    char *usr = get_user_user(user);
+    usr = get_user_user(user);
 
     lua_pushstring(L, usr);
 
@@ -180,12 +187,13 @@ int get_user_user_wrapper(lua_State *L)
 
 int get_hostmask_wrapper(lua_State *L)
 {
+    char *hostmask;
     char *user = (char *)lua_tostring(L, 1);
 
     if (!user)
         return 0;
 
-    char *hostmask = get_hostmask(user);
+    hostmask = get_hostmask(user);
     lua_pushstring(L, hostmask);
 
     free(hostmask);
@@ -194,12 +202,13 @@ int get_hostmask_wrapper(lua_State *L)
 
 int channel_exists_wrapper(lua_State *L)
 {
+    int exists;
     char *chan = (char *)lua_tostring(L, 1);
 
     if (!chan)
         return 0;
 
-    int exists = channel_exists(chan);
+    exists = channel_exists(chan);
 
     lua_pushboolean(L, exists);
 
@@ -208,12 +217,13 @@ int channel_exists_wrapper(lua_State *L)
 
 int user_exists_wrapper(lua_State *L)
 {
+    int exists;
     char *user = (char *)lua_tostring(L, 1);
 
     if (!user)
         return 0;
 
-    int exists = user_exists(user);
+    exists = user_exists(user);
 
     lua_pushboolean(L, exists);
 

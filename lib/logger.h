@@ -2,6 +2,7 @@
 #define LOGGER_H
 
 #include <stdio.h>
+#include "util.h"
 
 struct logger
 {
@@ -14,6 +15,6 @@ extern struct logger logger;
 void log_init(char *file);
 void log_close();
 
-void xlog(char *fmt, ...);
+MY_API void xlog(char *fmt, ...);
 
 #endif

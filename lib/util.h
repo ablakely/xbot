@@ -7,7 +7,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-#include "logger.h"
 
 #define DEBUG 1
 
