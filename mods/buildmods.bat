@@ -12,7 +12,6 @@ echo Building modules: %subdirs%
 for %%a in (%subdirs%) do (
     echo Building %%a
 
-
     if exist "%%a\make.bat" (
         pushd "%%a"
         @echo on
@@ -22,10 +21,14 @@ for %%a in (%subdirs%) do (
     ) else (
         echo make.bat not found in %%a, attempting to build %%a\%%a.c
 
-        @echo on
-        cl /I..\lib /I..\include\libconfig-1.7.3\lib /LD /EHsc  ..\Debug\xbot.lib ..\include\libconfig.lib %%a\%%a.c
-        link /DLL /out:.\%%a.dll %%a.obj ..\Debug\xbot.lib ..\include\libconfig.lib
-        @echo off
+        if exist "%%a\%%a.c" (
+            @echo on
+            cl /I..\lib /I..\include\libconfig-1.7.3\lib /LD /EHsc  ..\Debug\xbot.lib ..\include\libconfig.lib %%a\%%a.c
+            link /DLL /out:.\%%a.dll %%a.obj ..\Debug\xbot.lib ..\include\libconfig.lib
+            @echo off
+        ) else (
+            echo %%a\%%a.c not found
+        )
     )
 )
 
