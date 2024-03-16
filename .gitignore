@@ -11,6 +11,8 @@ xbot.db
 *.so
 ./*.dll
 ./*.lib
+./mods/*.dll
+./mods/*.lib
 *.obj
 *.exp
 *.exe
