@@ -2,6 +2,7 @@
 #include "util.h"
 #include "events.h"
 #include "module.h"
+#include "logger.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

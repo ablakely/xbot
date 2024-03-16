@@ -7,7 +7,6 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-
 #define DEBUG 1
 
 #ifdef DEBUG

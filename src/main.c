@@ -17,7 +17,7 @@
 #include "util.h"
 #include "events.h"
 #include "module.h"
-#include "channel.h"
+#include "logger.h"
 #include "timers.h"
 
 #ifdef _WIN32

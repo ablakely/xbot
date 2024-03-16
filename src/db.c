@@ -1,6 +1,5 @@
-#include "util.h"
-#include "irc.h"
 #include "db.h"
+#include "logger.h"
 
 #include <stdio.h>
 #include <string.h>

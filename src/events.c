@@ -3,6 +3,7 @@
 #include "events.h"
 #include "channel.h"
 #include "module.h"
+#include "logger.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

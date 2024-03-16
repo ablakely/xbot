@@ -4,19 +4,21 @@
 #include <libconfig.h>
 #include "irc.h"
 #include "util.h"
+#include "logger.h"
 #include "module.h"
 
 struct irc_conn read_config(struct irc_conn bot, char *file)
 {
     int count, n;
     config_t cfg, *cf;
-    const config_setting_t *autoload;
+    const config_setting_t *chans;
     const char *base = (const char*)malloc(sizeof(char) * 1024);
     const char *mod  = NULL;
     int boolbase;
 
     bot.verify_ssl = 0;
     bot.use_ssl = 0;
+    bot.cfchan_count = 0;
 
     cf = &cfg;
     config_init(cf);
@@ -62,6 +64,14 @@ struct irc_conn read_config(struct irc_conn bot, char *file)
     if (config_lookup_bool(cf, "server.ssl_verify", &boolbase))
         bot.verify_ssl = boolbase;
 
+    chans    = config_lookup(cf, "server.channels");
+    count    = config_setting_length(chans);
+
+    for (n = 0; n < count; n++)
+    {
+        bot.cfchannels[bot.cfchan_count] = strdup(config_setting_get_string_elem(chans, n));
+        bot.cfchan_count++;
+    }
 
     config_destroy(cf);
 

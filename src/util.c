@@ -12,6 +12,7 @@
 #include <ctype.h>
 
 #include "util.h"
+#include "logger.h"
 
 void eprint(char *fmt, ...)
 {

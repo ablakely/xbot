@@ -13,6 +13,7 @@
 #include "events.h"
 #include "module.h"
 #include "channel.h"
+#include "logger.h"
 
 #include <string.h>
 #include <stdlib.h>
@@ -458,12 +459,13 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
     {
         irc_raw(bot, "PONG %s", text);
     }
-    else if (!strcmp("PONG", raw))
-    {
-        irc_raw(bot, "PING %s", text);
-    }
     else if (!strcmp("001", raw))
     {
+        for (int i = 0; i < bot->cfchan_count; i++)
+        {
+            irc_join(bot, bot->cfchannels[i]);
+        }
+
         fire_handler(bot, IRC_CONNECTED, text);
     }
     else if (!strcmp("433", raw))

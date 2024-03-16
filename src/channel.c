@@ -1,12 +1,11 @@
 #include "irc.h"
 #include "util.h"
-#include "events.h"
+#include "logger.h"
 #include "module.h"
 #include "channel.h"
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
-#include <stdarg.h>
 
 struct channel *channels[60];
 int chan_count = 0;

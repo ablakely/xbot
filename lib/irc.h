@@ -72,6 +72,9 @@ struct irc_conn
     char log_file[256];
     struct db_table *db;
 
+    char *cfchannels[60];
+    int cfchan_count;
+
     // I/O Buffers
     char *out;
     char *in;
