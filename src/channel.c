@@ -119,7 +119,7 @@ void add_user_to_channel(char *user, char *host, char *chan)
         user++;
     }
 
-    if (user_exists(chan, user) == 1)
+    if (is_on_channel(user, chan) == 1)
         return;
 
     xlog("[channel] Adding user %s!%s to channel %s\n", user, host, chan);
@@ -352,6 +352,21 @@ char *get_user_user(char *nick)
     return NULL;
 }
 
+char *get_hostmask(char *nick)
+{
+    char hostbuf[1024];
+
+    char *host = get_user_host(nick);
+    char *user = get_user_user(nick);
+
+    if (host == NULL || user == NULL)
+        return NULL;
+
+    sprintf(hostbuf, "%s!%s@%s", nick, user, host);
+
+    return strdup(hostbuf);
+}
+
 #ifdef _WIN32
 MY_API BOOL is_op(char *chan, char *nick)
 #else
@@ -507,25 +522,20 @@ MY_API bool channel_exists(char *chan)
 }
 
 #ifdef _WIN32
-MY_API BOOL user_exists(char *chan, char *nick)
+MY_API BOOL user_exists(char *nick)
 #else
-MY_API bool user_exists(char *chan, char *nick)
+MY_API bool user_exists(char *nick)
 #endif
 {
-    int i;
+    int i, j;
 
     for (i = 0; i < chan_count; i++)
     {
-        if (!strcmp(channels[i]->name, chan))
+        for (j = 0; j < channels[i]->user_count; j++)
         {
-            int j;
-
-            for (j = 0; j < channels[i]->user_count; j++)
+            if (!strcmp(channels[i]->users[j].nick, nick))
             {
-                if (!strcmp(channels[i]->users[j].nick, nick))
-                {
-                    return 1;
-                }
+                return 1;
             }
         }
     }

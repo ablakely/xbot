@@ -130,6 +130,10 @@ void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const ch
         text = skip(text, ' ');
         res = luaL_loadstring(lua.L, text);
 
+        lua_setvar("nick", user);
+        lua_setvar("host", host);
+        lua_setvar("chan", chan);
+
         if (res == LUA_OK)
         {
             res = lua_pcall(lua.L, 0, 0, 0);

@@ -71,13 +71,14 @@ struct user *get_user(char *nick);
 
 MY_API char *get_user_host(char *nick);
 MY_API char *get_user_user(char *nick);
+MY_API char *get_hostmask(char *nick);
 
 #ifdef _WIN32
 MY_API BOOL is_op(char *chan, char *nick);
 MY_API BOOL is_halfop(char *chan, char *nick);
 MY_API BOOL is_voice(char *chan, char *nick);
 MY_API BOOL channel_exists(char *chan);
-MY_API BOOL user_exists(char *chan, char *nick);
+MY_API BOOL user_exists(char *nick);
 MY_API BOOL is_on_channel(char *nick, char *chan);
 MY_API BOOL is_botadmin(char *nick);
 #else
@@ -87,7 +88,7 @@ MY_API bool is_voice(char *chan, char *nick);
 MY_API bool is_owner(char *chan, char *nick);
 MY_API bool is_admin(char *chan, char *nick);
 MY_API bool channel_exists(char *chan);
-MY_API bool user_exists(char *chan, char *nick);
+MY_API bool user_exists(char *nick);
 MY_API bool is_on_channel(char *nick, char *chan);
 MY_API bool is_botadmin(char *nick);
 #endif

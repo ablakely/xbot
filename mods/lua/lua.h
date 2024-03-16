@@ -72,6 +72,17 @@ void kick_wrapper(lua_State *L);
 void mode_wrapper(lua_State *L);
 void ctcp_wrapper(lua_State *L);
 
+int get_user_host_wrapper(lua_State *L);
+int get_user_user_wrapper(lua_State *L);
+int get_hostmask_wrapper(lua_State *L);
+int channel_exists_wrapper(lua_State *L);
+int user_exists_wrapper(lua_State *L);
+int is_op_wrapper(lua_State *L);
+int is_halfop_wrapper(lua_State *L);
+int is_voice_wrapper(lua_State *L);
+int is_on_channel_wrapper(lua_State *L);
+int is_botadmin_wrapper(lua_State *L);
+
 // handlers.c
 void lua_init_handlers();
 void lua_unload_handlers();
