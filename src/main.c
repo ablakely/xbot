@@ -120,7 +120,8 @@ int main(int argc, char **argv)
         set_bot_db(bot.db);
 
         bot.db->count = 0;
-        bot.db->hashes = NULL;
+        bot.db->hashes = malloc(sizeof(struct db_hash));
+        memset(bot.db->hashes, 0, sizeof(struct db_hash));
 
         db_write(bot.db, bot.db_file);
     }

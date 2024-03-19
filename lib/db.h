@@ -44,6 +44,7 @@ MY_API int db_del_hash(struct db_table *db, char *key);
 
 MY_API void *db_get_hash(struct db_table *db, char *key);
 MY_API int db_get_hash_type(struct db_table *db, char *key);
+MY_API int db_hash_exists(struct db_table *db, char *key);
 
 MY_API char *db_get_hash_char(struct db_table *db, char *key);
 MY_API int db_get_hash_int(struct db_table *db, char *key);

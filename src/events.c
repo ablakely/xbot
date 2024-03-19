@@ -95,9 +95,70 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
     char *text;
     int i, j;
     void (*handler)();
+    char linebuf[1024];
     char *cmd, *arg, *modpath;
 
     modpath = (char *)malloc(sizeof(char)*500);
+
+    for (i = 0; i < handlers_count; i++)
+    {
+        if (!strcmp(handlers[i]->type, type))
+        {
+            for (j = 0; j < handlers[i]->count; j++)
+            {
+                handler = handlers[i]->evhands[j].handler;
+
+                if (handler == NULL)
+                    continue;
+
+                if (!strcmp(type, PRIVMSG_SELF))
+                {
+                    va_start(args, type);
+                 
+                    usr = va_arg(args, char*);
+                    host = va_arg(args, char*);
+                    text = va_arg(args, char*);
+
+                    (*handler)(bot, usr, host, text);
+
+                    va_end(args);
+                }
+                else if (!strcmp(type, PRIVMSG_CHAN))
+                {
+                    va_start(args, type);
+
+                    usr = va_arg(args, char*);
+                    host = va_arg(args, char*);
+                    chan = va_arg(args, char*);
+                    text = va_arg(args, char*);
+
+                    (*handler)(bot, usr, host, chan, text);
+                    va_end(args);
+                }
+                else if (!strcmp(type, JOIN))
+                {
+                    va_start(args, type);
+
+                    chan = va_arg(args, char*);
+                    usr = va_arg(args, char*);
+                    host = va_arg(args, char*);
+
+                    (*handler)(bot, chan, usr, host);
+                    va_end(args);
+                }
+                else if (!strcmp(type, IRC_CONNECTED)) 
+                {
+                    va_start(args, type);
+
+                    text = va_arg(args, char*);
+
+                    (*handler)(bot, text);
+                    va_end(args);
+                }
+            }
+        }
+    }
+    
 
     if (!strcmp(type, PRIVMSG_SELF))
     {
@@ -199,64 +260,6 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
         }
 
         va_end(args);
-    }
-    
-    for (i = 0; i < handlers_count; i++)
-    {
-        if (!strcmp(handlers[i]->type, type))
-        {
-            for (j = 0; j < handlers[i]->count; j++)
-            {
-                handler = handlers[i]->evhands[j].handler;
-
-                if (handler == NULL)
-                    continue;
-
-                if (!strcmp(type, PRIVMSG_SELF))
-                {
-                    va_start(args, type);
-                 
-                    usr = va_arg(args, char*);
-                    host = va_arg(args, char*);
-                    text = va_arg(args, char*);
-
-                    (*handler)(bot, usr, host, text);
-                    va_end(args);
-                }
-                else if (!strcmp(type, PRIVMSG_CHAN))
-                {
-                    va_start(args, type);
-
-                    usr = va_arg(args, char*);
-                    host = va_arg(args, char*);
-                    chan = va_arg(args, char*);
-                    text = va_arg(args, char*);
-
-                    (*handler)(bot, usr, host, chan, text);
-                    va_end(args);
-                }
-                else if (!strcmp(type, JOIN))
-                {
-                    va_start(args, type);
-
-                    chan = va_arg(args, char*);
-                    usr = va_arg(args, char*);
-                    host = va_arg(args, char*);
-
-                    (*handler)(bot, chan, usr, host);
-                    va_end(args);
-                }
-                else if (!strcmp(type, IRC_CONNECTED)) 
-                {
-                    va_start(args, type);
-
-                    text = va_arg(args, char*);
-
-                    (*handler)(bot, text);
-                    va_end(args);
-                }
-            }
-        }
     }
     
     free(modpath);

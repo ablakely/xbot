@@ -22,7 +22,6 @@ int append_script(char *fname)
 {
     char *scriptlist = db_get_hash_char(get_bot_db(), "lua.scripts");
     char *newlist = (char *)malloc(sizeof(char) * 500);
-    char *p = scriptlist;
 
     if (scriptlist == NULL)
     {

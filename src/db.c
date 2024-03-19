@@ -78,7 +78,10 @@ struct db_table *db_read(char *fname)
         return NULL;
     }
 
-    tmp = db->count != 0 ? db->count : sizeof(struct db_hash);
+    tmp = db->count != 0 ? db->count : 1;
+
+    printf("dbug: allocating %d hashes\n", tmp);
+
     db->hashes = (struct db_hash *)malloc(sizeof(struct db_hash) * tmp);
 
     fread(db->hashes, sizeof(struct db_hash), db->count, fp);
@@ -144,15 +147,13 @@ int db_set_hash_char(struct db_table *db, char *key, char *value)
         {
             if (db->hashes[i].type == DB_TYPE_CHAR)
             {
-                free(db->hashes[i].value);
+                db->hashes[i].value = (char *)realloc(db->hashes[i].value, sizeof(char) * (strlen(value) + 1));
             }
 
             db->hashes[i].type = DB_TYPE_CHAR;
             db->hashes[i].value_len = strlen(value) + 1;
-            db->hashes[i].value = (char *)malloc(sizeof(char) * db->hashes[i].value_len);
 
             memset(db->hashes[i].value, 0, sizeof(char) * db->hashes[i].value_len);
-
             strlcpy(db->hashes[i].value, value, sizeof(char) * db->hashes[i].value_len);
 
             return 0;
@@ -169,14 +170,49 @@ int db_set_hash_char(struct db_table *db, char *key, char *value)
     db->hashes[db->count].value = (char *)malloc(sizeof(char) * db->hashes[db->count].value_len);
 
     memset(db->hashes[db->count].value, 0, sizeof(char) * db->hashes[db->count].value_len);
-
     strlcpy(db->hashes[db->count].value, value, sizeof(char) * db->hashes[db->count].value_len);
 
     return db_set_hash(db, key, db->hashes[db->count].value);
 }
 
+int db_hash_exists(struct db_table *db, char *key)
+{
+    int i;
+
+    for (i = 0; i < db->count; i++)
+    {
+        if (strcmp(db->hashes[i].key, key) == 0)
+        {
+            return 1;
+        }
+    }
+
+    return 0;
+}
+
 int db_set_hash_int(struct db_table *db, char *key, int value)
 {
+    // check if the key already exists and update it
+    int i;
+
+    for (i = 0; i < db->count; i++)
+    {
+        if (strcmp(db->hashes[i].key, key) == 0)
+        {
+            if (db->hashes[i].type == DB_TYPE_INT)
+            {
+                db->hashes[i].value = (int *)realloc(db->hashes[i].value, sizeof(int));
+            }
+
+            db->hashes[i].type = DB_TYPE_INT;
+            db->hashes[i].value_len = sizeof(int);
+
+            memcpy(db->hashes[i].value, &value, sizeof(int));
+
+            return 0;
+        }
+    }
+
     db->hashes = (struct db_hash *)realloc(db->hashes, sizeof(struct db_hash) * (db->count + 1));
 
     // zero out reallocated memory
@@ -184,6 +220,7 @@ int db_set_hash_int(struct db_table *db, char *key, int value)
 
     db->hashes[db->count].type = DB_TYPE_INT;
     db->hashes[db->count].value_len = sizeof(int);
+
     db->hashes[db->count].value = (int *)malloc(sizeof(int));
 
     memcpy(db->hashes[db->count].value, &value, sizeof(int));
@@ -265,6 +302,11 @@ char *db_get_hash_char(struct db_table *db, char *key)
 int db_get_hash_int(struct db_table *db, char *key)
 {
     int value;
+
+    if (db_get_hash_type(db, key) != DB_TYPE_INT)
+    {
+        return -1;
+    }
 
     memcpy(&value, db_get_hash(db, key), sizeof(int));
 
