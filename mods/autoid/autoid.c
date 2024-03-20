@@ -1,4 +1,11 @@
-#include "channel.h"
+/*
+ * autoid.c
+ * Auto identify with nickserv
+ *
+ * Written by Aaron Blakely <aaron@ephasic.org>
+ * Copyright 2024 (C) Aaron Blakely
+*/
+
 #include "util.h"
 #define MY_DLL_EXPORTS 1
 
@@ -48,7 +55,10 @@ MY_API void autoid_command(struct irc_conn *bot, char *user, char *host, const c
                 return;
             }
 
-            irc_privmsg(bot, arg1, "register %s %s", arg3, arg2);
+            if (!db_hash_exists(get_bot_db(), "autoid.password"))
+            {
+                irc_privmsg(bot, arg1, "register %s %s", arg3, arg2);
+            }
 
             db_set_hash_char(get_bot_db(), "autoid.nickserv", arg1);
             db_set_hash_char(get_bot_db(), "autoid.email", arg2);

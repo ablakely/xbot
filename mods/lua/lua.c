@@ -1,3 +1,11 @@
+/*
+ * lua.c
+ * Lua scripting module
+ *
+ * Written by Aaron Blakely <aaron@ephasic.org>
+ * Copright 2024 (C) Aaron Blakely
+*/
+
 #include "util.h"
 #include "irc.h"
 #include "events.h"

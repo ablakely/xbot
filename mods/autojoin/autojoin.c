@@ -1,3 +1,11 @@
+/*
+ * autojoin.c
+ * Autojoin channels on connect
+ *
+ * Written by Aaron Blakely <aaron@ephasic.org>
+ * Copyright 2024 (C) Aaron Blakely
+*/
+
 #include "channel.h"
 #include "util.h"
 #define MY_DLL_EXPORTS 1
@@ -58,7 +66,7 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
     char *args = skip(text, ' ');
     char *arg1 = skip(args, ' ');
 
-    if (!strcmp(text, "autojoin"))
+    if (strncasecmp(text, "autojoin", 8) == 0)
     {
 
        if (!is_botadmin(user))
@@ -75,7 +83,7 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
            return;
        }
 
-       if (!strcmp(args, "add"))
+       if (strncasecmp(args, "add", 3) == 0)
        {
            if (arg1 == NULL)
            {
@@ -139,7 +147,7 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
                irc_join(bot, arg1);
            }
        }
-       else if (!strcmp(args, "del"))
+       else if (strncasecmp(args, "del", 3) == 0)
        {
            args = skip(text, ' ');
            if (args == NULL)
@@ -203,7 +211,7 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
 
            return;
        }
-       else if (!strcmp(args, "list"))
+       else if (strncasecmp(args, "list", 4) == 0)
        {
            chanlist = db_get_hash_char(get_bot_db(), "autojoin.channels");
            buf = (char *)malloc(sizeof(char *)*1024);
