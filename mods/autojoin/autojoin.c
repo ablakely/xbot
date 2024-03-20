@@ -1,4 +1,5 @@
 #include "channel.h"
+#include "util.h"
 #define MY_DLL_EXPORTS 1
 
 #include "module.h"
@@ -16,6 +17,7 @@ struct irc_conn *instance;
 MY_API void aj_connected(struct irc_conn *bot, char *text)
 {
     char *chanlist;
+    char *buf;
     char *chan;
     int chancount;
     int i;
@@ -25,19 +27,25 @@ MY_API void aj_connected(struct irc_conn *bot, char *text)
         return;
     }
 
-    chan = calloc(60, sizeof(char));
     chanlist = db_get_hash_char(get_bot_db(), "autojoin.channels");
     chancount = db_get_hash_int(get_bot_db(), "autojoin.count");
 
+    buf = (char *)malloc(sizeof(char *)*1024);
+    memset(buf, 0, 1024);
+
+    strlcpy(buf, chanlist, 1024);
+
     for (i = 0; i < chancount; i++)
     {
-        chan = strsep(&chanlist, ",");
+        chan = strsep(&buf, ",");
+        if (chan == NULL)
+            break;
 
         printf("Autojoining %s\n", chan);
         irc_join(bot, chan);
     }
 
-    //free(chan);
+    free(buf);
 }
 
 MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
@@ -82,22 +90,48 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
                db_set_hash_int(get_bot_db(), "autojoin.count", 1);
                db_write(get_bot_db(), instance->db_file);
 
-               irc_notice(bot, user, "Channel added to autojoin list");
+               irc_notice(bot, user, "%s added to autojoin list", arg1);
            } else {
-               chanlist = db_get_hash_char(get_bot_db(), "autojoin.channels");
                chancount = db_get_hash_int(get_bot_db(), "autojoin.count");
+
+               chanlist = (char *)malloc(sizeof(char *)*1024);
+               chanlist = db_get_hash_char(get_bot_db(), "autojoin.channels");
+
+               buf = (char *)malloc(sizeof(char *)*1024);
+
+               // check if channel is already in list
+               strlcpy(buf, chanlist, 1024);
+
+               for (i = 0; i < chancount; i++)
+               {
+                   chan = strsep(&buf, ",");
+                   if (chan == NULL)
+                       break;
+
+                   if (!strcmp(chan, arg1))
+                   {
+                       irc_notice(bot, user, "%s already in autojoin list", arg1);
+                       free(buf);
+                       return;
+                   }
+               }
 
                strlcat(chanlist, ",", 1024);
                strlcat(chanlist, arg1, 1024);
+               
                chancount++;
 
-               buf = strdup(chanlist);
+               buf = (char *)malloc(sizeof(char *)*1024);
+
+               strlcpy(buf, chanlist, 1024);
 
                db_set_hash_char(get_bot_db(), "autojoin.channels", buf);
                db_set_hash_int(get_bot_db(), "autojoin.count", chancount);
                db_write(get_bot_db(), instance->db_file);
 
-               irc_notice(bot, user, "Channel added to autojoin list");
+               free(buf);
+
+               irc_notice(bot, user, "%s added to autojoin list", arg1);
            }
 
            if (!channel_exists(arg1))
@@ -154,13 +188,11 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
                if (buf[strlen(buf)-1] == ',')
                    buf[strlen(buf)-1] = '\0';
 
-               printf("New channel list: %s\n", buf);
-
                db_set_hash_char(get_bot_db(), "autojoin.channels", buf);
                db_set_hash_int(get_bot_db(), "autojoin.count", chancount);
                db_write(get_bot_db(), instance->db_file);
 
-               irc_notice(bot, user, "Channel removed from autojoin list");
+               irc_notice(bot, user, "%s removed from autojoin list", arg1);
                free(buf);
            }
 
@@ -175,9 +207,8 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
        {
            chanlist = db_get_hash_char(get_bot_db(), "autojoin.channels");
            buf = (char *)malloc(sizeof(char *)*1024);
-
-           strlcpy(buf, "Autojoin channels: ", 1024);
-           strlcat(buf, chanlist, 1024);
+           
+           sprintf(buf, "Autojoin list: %s", chanlist);
 
            irc_notice(bot, user, buf);
 
@@ -187,7 +218,6 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
        {
            irc_notice(bot, user, "Usage: autojoin <add|del|list> <channel>");
        }
-
    }
 }
 

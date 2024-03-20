@@ -1,5 +1,6 @@
 #include "db.h"
 #include "logger.h"
+#include "util.h"
 
 #include <stdio.h>
 #include <string.h>
@@ -146,8 +147,6 @@ int db_set_hash_char(struct db_table *db, char *key, char *value)
         {
             if (db->hashes[i].type == DB_TYPE_CHAR)
             {
-                //db->hashes[i].value = (char *)realloc(db->hashes[i].value, sizeof(char) * (strlen(value) + 1));
-                memset(db->hashes[i].value, 0, sizeof(char) * db->hashes[i].value_len);
                 free(db->hashes[i].value);
             }
 
