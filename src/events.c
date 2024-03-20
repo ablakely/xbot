@@ -29,6 +29,7 @@ void init_event_type(char *type)
 void init_events()
 {
     init_event_type(TICK);
+    init_event_type(RAW);
     init_event_type(PRIVMSG_SELF);
     init_event_type(PRIVMSG_CHAN);
     init_event_type(JOIN);
@@ -39,6 +40,7 @@ void init_events()
     init_event_type(CTCP);
     init_event_type(IRC_NAMREPLY);
     init_event_type(IRC_WHOREPLY);
+    init_event_type(MODE);
 }
 
 MY_API int add_handler(char *type, void *handler)

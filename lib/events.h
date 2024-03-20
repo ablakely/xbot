@@ -20,6 +20,9 @@
 #define IRC_NAMREPLY    "353"
 #define IRC_WHOREPLY    "352"
 #define TICK            "TICK"
+#define MODE            "MODE"
+#define MODE_PARSED     "MODE_PARSED"
+#define RAW             "RAW"
 
 struct ev_handler
 {

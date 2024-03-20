@@ -376,6 +376,8 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
 
 	printf("dbug raw: %s\r\n", raw);
 
+    fire_handler(bot, RAW, raw);
+
     if (!strcmp("PONG", raw))
     {
         return;
@@ -535,16 +537,56 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
 
         fire_handler(bot, IRC_WHOREPLY, chan, user, host, server, nick, flags, realname);
     }
-    else
+    else if (!strcmp("NICK", raw) && !strcmp(user, bot->nick))
     {
-        if (!strcmp("NICK", raw) && !strcmp(user, bot->nick))
-        {
             strlcpy(bot->nick, text, sizeof bot->nick);
-
             fire_handler(bot, NICK_MYSELF, user, text);
-        }
     }
+    else if (!strcmp("MODE", raw))
+    {
+        printf("dbug mode: %s %s %s\n", user, par, text);
+        // dbug mode: Yin #lobby +qo ABx2 ABx2
 
+        fire_handler(bot, MODE, user, par, text);
+
+        // split the mode string into individual modes
+        // and fire the MODE_PARSED handler for each mode
+        // such as fire_handler(bot, MODE_PARSED, user, par, set, mode, arg)
+        // where set is '+' or '-', mode is the mode, and arg is the argument
+
+        char *set = par;
+        char *buf = NULL;
+        char *mode = NULL;
+        char *arg = NULL;
+        int space = 0;
+
+        buf = malloc(strlen(text) + 1);
+        strlcpy(buf, text, strlen(text) + 1);
+
+        for (int i = 0; i < strlen(buf); i++)
+        {
+            if (buf[i] == ' ')
+            {
+                // use spaces to tell where the mode and argument are
+                space++;
+            }
+
+            if (space == 0)
+            {
+                mode = buf;
+                mode[i] = '\0';
+            }
+            else if (space == 1)
+            {
+                arg = buf + i;
+                arg[i] = '\0';
+                break;
+            }
+        }
+
+        fire_handler(bot, MODE_PARSED, user, par, set, mode, arg);
+        free(buf);
+    }
 }
 
 #ifdef _WIN32
