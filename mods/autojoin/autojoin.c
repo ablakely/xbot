@@ -41,7 +41,7 @@ MY_API void aj_connected(struct irc_conn *bot, char *text)
         if (chan == NULL)
             break;
 
-        printf("Autojoining %s\n", chan);
+        xlog("[autojoin] Joining %s\n", chan);
         irc_join(bot, chan);
     }
 
@@ -207,6 +207,14 @@ MY_API void aj_command(struct irc_conn *bot, char *user, char *host, char *text)
        {
            chanlist = db_get_hash_char(get_bot_db(), "autojoin.channels");
            buf = (char *)malloc(sizeof(char *)*1024);
+
+           if (chanlist == NULL)
+           {
+               irc_notice(bot, user, "No channels in autojoin list");
+
+               free(buf);
+               return;
+           }
            
            sprintf(buf, "Autojoin list: %s", chanlist);
 
