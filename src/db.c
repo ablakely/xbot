@@ -138,7 +138,6 @@ int db_set_hash(struct db_table *db, char *key, void *value)
 
 int db_set_hash_char(struct db_table *db, char *key, char *value)
 {
-    // check if the key already exists and update it
     int i;
 
     for (i = 0; i < db->count; i++)
@@ -147,7 +146,9 @@ int db_set_hash_char(struct db_table *db, char *key, char *value)
         {
             if (db->hashes[i].type == DB_TYPE_CHAR)
             {
-                db->hashes[i].value = (char *)realloc(db->hashes[i].value, sizeof(char) * (strlen(value) + 1));
+                //db->hashes[i].value = (char *)realloc(db->hashes[i].value, sizeof(char) * (strlen(value) + 1));
+                memset(db->hashes[i].value, 0, sizeof(char) * db->hashes[i].value_len);
+                free(db->hashes[i].value);
             }
 
             db->hashes[i].type = DB_TYPE_CHAR;
