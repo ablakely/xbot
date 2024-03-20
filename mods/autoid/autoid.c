@@ -55,7 +55,7 @@ MY_API void autoid_command(struct irc_conn *bot, char *user, char *host, const c
             db_set_hash_char(get_bot_db(), "autoid.password", arg3);
             db_write(get_bot_db(), bot->db_file);
         }
-        else if (strncasecmp(arg1, "show", 4) == 0)
+        else if (strncasecmp(args, "show", 4) == 0)
         {
             nickserv = db_get_hash_char(get_bot_db(), "autoid.nickserv");
             email = db_get_hash_char(get_bot_db(), "autoid.email");
