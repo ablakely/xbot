@@ -355,7 +355,7 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
     char *arg = NULL;
     char **args = NULL;
 
-    int j, k;
+    int i, j, k;
 
     int modecount = 0;
     int argcount = 0;
@@ -476,7 +476,7 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
     }
     else if (!strcmp("001", raw))
     {
-        for (int i = 0; i < bot->cfchan_count; i++)
+        for (i = 0; i < bot->cfchan_count; i++)
         {
             irc_join(bot, bot->cfchannels[i]);
         }
@@ -574,6 +574,9 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
         //   set: +
         //   mode: q
         //   arg: ABx2
+        //
+        //   TODO: modes set by the server are not parsed correctly
+        //   use the MODE handler to parse modes set by the server
 
 
         buf = skip(par, ' ');
@@ -585,7 +588,7 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
 
         sprintf(modestr, "%s %s", buf, text);
 
-        for (int i = 0; i < strlen(modestr); i++)
+        for (i = 0; i < strlen(modestr); i++)
         {
 
             if (modestr[i] == ' ')
@@ -616,7 +619,7 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
 
                 mode = malloc(tmpcount + 1);
 
-                for (int j = 0; j < tmpcount; j++)
+                for (j = 0; j < tmpcount; j++)
                 {
                     mode[j] = modestr[i - tmpcount + j];
                     modecount++;
@@ -638,7 +641,7 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
                 // split arg into individual args separated by spaces and store them in args
 
                 k = 0;
-                for (int j = 0; j < strlen(arg) + 1; j++)
+                for (j = 0; j < strlen(arg) + 1; j++)
                 {
                     if (arg[j] == ' ' || arg[j] == '\0')
                     {
@@ -661,7 +664,7 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
             }
         }
 
-        for (int i = 0; i < modecount; i++)
+        for (i = 0; i < modecount; i++)
         {
             if (argcount >= i)
             {
@@ -671,7 +674,7 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
             else
             {
                 printf("dbug mode parsed: %s %s %c %c\n", user, par, set, mode[i]);
-                fire_handler(bot, MODE_PARSED, user, par, set, mode[i]);
+                fire_handler(bot, MODE_PARSED, user, par, set, mode[i], NULL);
             }
         }
 
