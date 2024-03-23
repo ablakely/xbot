@@ -67,6 +67,7 @@ void update_server(char *nick, char *server);
 void update_realname(char *nick, char *real_name);
 void user_quit(char *nick);
 void set_realname(char *nick, char *real_name);
+void set_channel_mode(char *chan, char *nick, char set, char mode);
 struct user *get_user(char *nick);
 
 MY_API char *get_user_host(char *nick);

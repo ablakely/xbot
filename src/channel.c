@@ -48,6 +48,67 @@ void remove_channel(char *name)
     }
 }
 
+
+void set_channel_mode(char *chan, char *nick, char set, char mode)
+{
+    int i, j;
+
+    for (i = 0; i < chan_count; i++)
+    {
+        if (!strcmp(channels[i]->name, chan))
+        {
+            for (j = 0; j < channels[i]->user_count; j++)
+            {
+                if (!strcmp(channels[i]->users[j].nick, nick))
+                {
+                    if (set == '+')
+                    {
+                        switch (mode)
+                        {
+                            case 'o':
+                                channels[i]->users[j].is_op = 1;
+                                break;
+                            case 'v':
+                                channels[i]->users[j].is_voice = 1;
+                                break;
+                            case 'h':
+                                channels[i]->users[j].is_halfop = 1;
+                                break;
+                            case 'a':
+                                channels[i]->users[j].is_admin = 1;
+                                break;
+                            case 'q':
+                                channels[i]->users[j].is_owner = 1;
+                                break;
+                        }
+                    }
+                    else
+                    {
+                        switch (mode)
+                        {
+                            case 'o':
+                                channels[i]->users[j].is_op = 0;
+                                break;
+                            case 'v':
+                                channels[i]->users[j].is_voice = 0;
+                                break;
+                            case 'h':
+                                channels[i]->users[j].is_halfop = 0;
+                                break;
+                            case 'a':
+                                channels[i]->users[j].is_admin = 0;
+                                break;
+                            case 'q':
+                                channels[i]->users[j].is_owner = 0;
+                                break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 struct user *get_user(char *nick)
 {
     int i, j;

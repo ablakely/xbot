@@ -670,6 +670,8 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
             {
                 printf("dbug mode parsed: %s %s %c %c %s\n", user, par, set, mode[i], args[i]);
                 fire_handler(bot, MODE_PARSED, user, par, set, mode[i], args[i]);
+
+                set_channel_mode(par, args[i], set, mode[i]);
             }
             else
             {
