@@ -348,6 +348,19 @@ void irc_ctcp(struct irc_conn *bot, char *to, char *fmt, ...)
 void irc_parse_raw(struct irc_conn *bot, char *raw)
 {
     char *user, *host, *par, *text, *chan, *nick, *nicks, *tmp;
+    char set = ' ';
+    char *buf = NULL;
+    char *mode = NULL;
+    char *modestr;
+    char *arg = NULL;
+    char **args = NULL;
+
+    int j, k;
+
+    int modecount = 0;
+    int argcount = 0;
+    int space_count = 0;
+    int tmpcount = 0;
     user = bot->host;
 
     if (!raw || !*raw)
@@ -551,41 +564,126 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
 
         // split the mode string into individual modes
         // and fire the MODE_PARSED handler for each mode
-        // such as fire_handler(bot, MODE_PARSED, user, par, set, mode, arg)
-        // where set is '+' or '-', mode is the mode, and arg is the argument
+        // example:
+        //   if the mode from IRC is
+        //   MODE #lobby +qo ABx2 ABx2
+        //
+        //   the MODE_PARSED handler will be fired 2 times
+        //   with the following arguments:
+        //   user: Yin
+        //   set: +
+        //   mode: q
+        //   arg: ABx2
 
-        char *set = par;
-        char *buf = NULL;
-        char *mode = NULL;
-        char *arg = NULL;
-        int space = 0;
 
-        buf = malloc(strlen(text) + 1);
-        strlcpy(buf, text, strlen(text) + 1);
+        buf = skip(par, ' ');
+        tmp = malloc(strlen(text) + 1);
+        args = malloc(strlen(text) * sizeof(char *));
+        modestr = malloc(strlen(text) + strlen(par) + 1);
 
-        for (int i = 0; i < strlen(buf); i++)
+        memset(tmp, 0, strlen(text) + 1);
+
+        sprintf(modestr, "%s %s", buf, text);
+
+        for (int i = 0; i < strlen(modestr); i++)
         {
-            if (buf[i] == ' ')
+
+            if (modestr[i] == ' ')
             {
-                // use spaces to tell where the mode and argument are
-                space++;
+                space_count++;
+                continue;
             }
 
-            if (space == 0)
+            if (space_count == 0 && (modestr[i] == '+' || modestr[i] == '-'))
             {
-                mode = buf;
-                mode[i] = '\0';
+                buf = strdup(modestr + i);
+                
+                set = buf[0];
+
+                free(buf);
+                continue;
             }
-            else if (space == 1)
+
+            if (space_count == 0 && modestr[i] != '+' && modestr[i] != '-' && !mode)
             {
-                arg = buf + i;
-                arg[i] = '\0';
-                break;
+                mode = modestr + i;
+
+                while (modestr[i] != ' ' && modestr[i] != '\0')
+                {
+                    tmpcount++;
+                    i++;
+                }
+
+                mode = malloc(tmpcount + 1);
+
+                for (int j = 0; j < tmpcount; j++)
+                {
+                    mode[j] = modestr[i - tmpcount + j];
+                    modecount++;
+                }
+
+                mode[tmpcount] = '\0';
+
+                i -= tmpcount;
+
+                continue;
+            }
+
+            if (space_count >= 1 && arg == NULL)
+            {
+                arg = (char *)malloc(strlen(modestr + i) + 1);
+
+                strlcpy(arg, modestr + i, strlen(modestr + i) + 1);
+
+                // split arg into individual args separated by spaces and store them in args
+
+                k = 0;
+                for (int j = 0; j < strlen(arg) + 1; j++)
+                {
+                    if (arg[j] == ' ' || arg[j] == '\0')
+                    {
+                        args[argcount] = malloc(strlen(tmp) + 1);
+                        memset(args[argcount], 0, strlen(tmp) + 1);
+
+                        strlcpy(args[argcount], tmp, strlen(tmp) + 1);
+
+                        argcount++;
+                        k = 0;
+                    }
+                    else
+                    {
+                        memcpy(tmp + k, arg + j, 1);
+
+                        k++;
+                    }
+                }
+
             }
         }
 
-        fire_handler(bot, MODE_PARSED, user, par, set, mode, arg);
-        free(buf);
+        for (int i = 0; i < modecount; i++)
+        {
+            if (argcount >= i)
+            {
+                printf("dbug mode parsed: %s %s %c %c %s\n", user, par, set, mode[i], args[i]);
+                fire_handler(bot, MODE_PARSED, user, par, set, mode[i], args[i]);
+            }
+            else
+            {
+                printf("dbug mode parsed: %s %s %c %c\n", user, par, set, mode[i]);
+                fire_handler(bot, MODE_PARSED, user, par, set, mode[i]);
+            }
+        }
+
+        free(tmp);
+        free(args);
+        free(mode);
+        free(modestr);
+    }
+
+    if (arg != NULL)
+    {
+        free(arg);
     }
 }
 
