@@ -124,6 +124,8 @@ Creates a timer that will call the `callback` function in `timeout` seconds, rep
 
 `data` is optional and will be passed as the first argument of the callback function
 
+Returns the timer_id number
+
 ### `set_timer_name(timer_id, name)`
 
 Sets the name of the timer_id timer
