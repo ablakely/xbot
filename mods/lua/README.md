@@ -116,6 +116,8 @@ Returns a boolean value of the user status in chan
 
 Returns a boolean value if the user is a bot admin
 
+## Timers
+
 ### `add_timer(timeout, repeat, callback, data)`
 
 Creates a timer that will call the `callback` function in `timeout` seconds, repeated `repeat` times.
