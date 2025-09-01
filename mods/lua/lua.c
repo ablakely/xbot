@@ -3,10 +3,11 @@
  * Lua scripting module
  *
  * Written by Aaron Blakely <aaron@ephasic.org>
- * Copright 2024 (C) Aaron Blakely
+ * Copyright 2024 (C) Aaron Blakely
 */
 
 #include "util.h"
+#include "logger.h"
 #include "irc.h"
 #include "events.h"
 #include "module.h"
@@ -134,7 +135,7 @@ void lua_eval(struct irc_conn *bot, char *user, char *host, char *chan, const ch
     block = 1;
     if (strstr(text, "!lua") != NULL)
     {
-        text = skip(text, ' ');
+        text = skip((char *)text, ' ');
         res = luaL_loadstring(lua.L, text);
 
         lua_setvar("nick", user);
@@ -195,7 +196,7 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
 
 
         name = basename(buf);
-        append_script(text);
+        append_script((char *)text);
 
         // execute the script
         if (lua_pcall(lua.L, 0, 0, 0) != LUA_OK)
@@ -321,7 +322,7 @@ void lua_unload_script(struct irc_conn *bot, char *user, char *host, char *chan,
                 luaL_unref(lua.L, LUA_REGISTRYINDEX, lua.scripts[i].unload);
                 lua.scripts[i].unload = -1;
 
-                remove_script(text);
+                remove_script((char *)text);
 
                 irc_privmsg(bot, chan, "Unloaded %s", text);
                 xlog("[lua] Unloaded %s [issued by %s!%s@%s]\n", text, user, host, chan);

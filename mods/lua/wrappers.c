@@ -1,5 +1,9 @@
 #include "lua.h"
 #include "channel.h"
+#include "timers.h"
+#include "module.h"
+#include "logger.h"
+#include <lua5.3/lauxlib.h>
 #include <stdlib.h>
 
 #ifdef _WIN32
@@ -32,61 +36,72 @@ void lua_init_wrappers()
     lua_register(lua.L, "isvoice", is_voice_wrapper);
     lua_register(lua.L, "ison", is_on_channel_wrapper);
     lua_register(lua.L, "isbotadmin", is_botadmin_wrapper);
+
+    lua_register(lua.L, "add_timer", add_timer_wrapper);
+    lua_register(lua.L, "set_timer_name", set_timer_name_wrapper);
+    lua_register(lua.L, "get_timer_repeat", get_timer_repeat_wrapper);
+    lua_register(lua.L, "del_timer", del_timer_wrapper);
+    lua_register(lua.L, "active_timers", active_timers_wrapper);
 }
 
-void xlog_wrapper(lua_State *L)
+int xlog_wrapper(lua_State *L)
 {
     char *msg = (char *)lua_tostring(L, 1);
 
     if (!msg)
-        return;
+        return 0;
 
     xlog("%s", msg);
+    return 0;
 }
 
-void raw_wrapper(lua_State *L)
+int raw_wrapper(lua_State *L)
 {
     char *text = (char *)lua_tostring(L, 1);
 
     if (!text)
-        return;
+        return 0;
 
     irc_raw(instance, text);
+    return 0;
 }
 
-void privmsg_wrapper(lua_State *L)
+int privmsg_wrapper(lua_State *L)
 {
     char *where = (char *)lua_tostring(L, 1);
     char *text = (char *)lua_tostring(L, 2);
 
     if (!where || !text)
-        return;
+        return 0;
 
     irc_privmsg(instance, where, text);
+    return 0;
 }
 
-void notice_wrapper(lua_State *L)
+int notice_wrapper(lua_State *L)
 {
     char *where = (char *)lua_tostring(L, 1);
     char *text = (char *)lua_tostring(L, 2);
 
     if (!where || !text)
-        return;
+        return 0;
 
     irc_notice(instance, where, text);
+    return 0;
 }
 
-void join_wrapper(lua_State *L)
+int join_wrapper(lua_State *L)
 {
     char *chan = (char *)lua_tostring(L, 1);
     
     if (!chan)
-        return;
+        return 0;
 
     irc_join(instance, chan);
+    return 0;
 }
 
-void part_wrapper(lua_State *L)
+int part_wrapper(lua_State *L)
 {
     char *chan = (char *)lua_tostring(L, 1);
     char *reason = (char *)lua_tostring(L, 2);
@@ -97,23 +112,26 @@ void part_wrapper(lua_State *L)
     }
 
     if (!chan)
-        return;
+        return 0;
 
     irc_part(instance, chan, reason);
+
+    return 0;
 }
 
-void ban_wrapper(lua_State *L)
+int ban_wrapper(lua_State *L)
 {
     char *chan = (char *)lua_tostring(L, 1);
     char *user = (char *)lua_tostring(L, 2);
 
     if (!chan || !user)
-        return;
+        return 0;
 
     irc_ban(instance, chan, user);
+    return 0;
 }
 
-void kick_wrapper(lua_State *L)
+int kick_wrapper(lua_State *L)
 {
     char *chan = (char *)lua_tostring(L, 1);
     char *user = (char *)lua_tostring(L, 2);
@@ -125,31 +143,35 @@ void kick_wrapper(lua_State *L)
     }
 
     if (!chan || !user)
-        return;
+        return 0;
 
     irc_kick(instance, chan, user, reason);
+
+    return 0;
 }
 
-void mode_wrapper(lua_State *L)
+int mode_wrapper(lua_State *L)
 {
     char *chan = (char *)lua_tostring(L, 1);
     char *mode = (char *)lua_tostring(L, 2);
 
     if (!chan || !mode)
-        return;
+        return 0;
 
     irc_mode(instance, chan, mode);
+    return 0;
 }
 
-void ctcp_wrapper(lua_State *L)
+int ctcp_wrapper(lua_State *L)
 {
     char *to = (char *)lua_tostring(L, 1);
     char *msg = (char *)lua_tostring(L, 2);
 
     if (!to || !msg)
-        return;
+        return 0;
 
     irc_ctcp(instance, to, msg);
+    return 0;
 }
 
 // channel and user related functions
@@ -308,3 +330,125 @@ int is_botadmin_wrapper(lua_State *L)
 
     return 1;
 }
+
+// timers
+
+void timer_stub(struct irc_conn *bot, void *data)
+{
+    struct lua_timer *timer = (struct lua_timer *)data;
+
+    lua_rawgeti(timer->L, LUA_REGISTRYINDEX, timer->lreg);
+
+    if (timer->arg_ref != LUA_NOREF) {
+        lua_rawgeti(timer->L, LUA_REGISTRYINDEX, timer->arg_ref);
+        lua_call(timer->L, 1, 0);
+    } else {
+        lua_call(timer->L, 0, 0);
+    }
+
+}
+
+int add_timer_wrapper(lua_State *L)
+{
+    int lreg, interval, repeat, arg_ref = LUA_NOREF;
+    struct lua_timer *timer;
+
+    if (lua_gettop(L) < 3)
+    {
+        xlog("[lua] Error: add_timer requires 3 arguments\n");
+        return 0;
+    }
+
+    luaL_checktype(L, 1, LUA_TNUMBER);
+    luaL_checktype(L, 2, LUA_TNUMBER);
+    luaL_checktype(L, 3, LUA_TFUNCTION);
+
+    interval = (int)lua_tointeger(L, 1);
+    repeat   = (int)lua_tointeger(L, 2);
+
+    lua_pushvalue(L, 3);
+    lreg = luaL_ref(L, LUA_REGISTRYINDEX);
+
+    if (lua_gettop(L) >= 4) {
+        lua_pushvalue(L, 4);
+        arg_ref = luaL_ref(L, LUA_REGISTRYINDEX);
+    }
+    
+    timer = calloc(1, sizeof(struct lua_timer));
+
+    timer->repeat = repeat;
+    timer->lreg = lreg;
+    timer->arg_ref = arg_ref;
+    timer->L = L;
+    
+    timer->timer_id = add_timer(get_bot(), interval, repeat, timer_stub, timer);
+
+    lua_pushinteger(L, timer->timer_id);
+    return 1;
+}
+
+int set_timer_name_wrapper(lua_State *L)
+{
+    int timerid;
+    char *timername;
+
+    if (lua_gettop(L) < 2) {
+        xlog("[lua] Error: set_timer_name requires 2 arguments\n");
+        return 0;
+    }
+
+    luaL_checktype(L, 1, LUA_TNUMBER);
+    luaL_checktype(L, 2, LUA_TSTRING);
+
+    timerid = (int)lua_tointeger(L, 1);
+    timername = (char *)lua_tostring(L, 2);
+
+    set_timer_name(timerid, timername);
+
+    return 0;
+}
+
+int get_timer_repeat_wrapper(lua_State *L)
+{
+    int timerid, repeat;
+
+    if (lua_gettop(L) < 1) {
+        xlog("[lua] Error: get_timer_repeat requires 1 argument\n");
+        return 0;
+    }
+
+    luaL_checktype(L, 1, LUA_TNUMBER);
+
+    timerid = (int)lua_tointeger(L, 1);
+
+    repeat = get_timer_repeat(timerid);
+
+    lua_pushinteger(L, repeat);
+    return 1;
+}
+
+int del_timer_wrapper(lua_State *L)
+{
+    int timerid;
+
+    if (lua_gettop(L) < 1) {
+        xlog("[lua] Error: del_timer requires 1 argument\n");
+        return 0;
+    }
+
+    luaL_checktype(L, 1, LUA_TNUMBER);
+    
+    timerid = (int)lua_tointeger(L, 1);
+
+    del_timer(timerid);
+    return 0;
+}
+
+int active_timers_wrapper(lua_State *L)
+{
+    bool active = active_timers();
+
+    lua_pushboolean(L, active);
+    return 1;
+}
+

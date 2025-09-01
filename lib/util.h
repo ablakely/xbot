@@ -49,6 +49,9 @@ MY_API char *basename(char *path);
 // returns a pointer to the first non-matching character
 MY_API char *skip(char *s, char c);
 
+// split_arg - safe split: returns pointer to first word, sets second to remainder
+MY_API void split_arg(char *s, char **cmd, char **arg);
+
 // trim - remove leading and trailing whitespace from a string
 MY_API void trim(char *s);
 

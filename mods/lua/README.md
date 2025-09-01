@@ -76,3 +76,62 @@ Sets a mode on a channel.
 
 Sends a CTCP message to a channel or user.
 
+### `get_user_host(user)`
+
+Returns the host of the user.
+
+### `get_user_user(user)`
+
+Returns the user of the user
+
+### `get_hostmask(user)`
+
+Returns the hostmask of the user
+
+### `channel_exists(chan)`
+
+Returns a boolean value if chan is a channel the bot is in.
+
+### `user_exists(user)`
+
+Returns a boolean value if user exists to the bot.
+
+### `is_op(chan, user)`
+
+Returns a boolean value of the user's OP status in chan.
+
+### `is_halfop(chan, user)`
+
+Returns a boolean value of the user's Half Op status in chan.
+
+### `is_voice(chan, user)`
+
+Returns a boolean value of the user's voice status in chan.
+
+### `is_on_channel(chan, user)`
+
+Returns a boolean value of the user status in chan
+
+### `is_botadmin(user)`
+
+Returns a boolean value if the user is a bot admin
+
+### `add_timer(timeout, repeat, callback, data)`
+
+Creates a timer that will call the `callback` function in `timeout` seconds, repeated `repeat` times.
+
+`data` is optional and will be passed as the first argument of the callback function
+
+### `set_timer_name(timer_id, name)`
+
+Sets the name of the timer_id timer
+
+### `get_timer_repeat(timer_id)`
+
+Returns the number of times the timer has rang
+
+### `del_timer(timer_id)`
+
+Removes a timer
+
+

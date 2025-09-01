@@ -67,6 +67,22 @@ char *skip(char *s, char c)
     return s;
 }
 
+void split_arg(char *s, char **cmd, char **arg)
+{
+    *cmd = s;
+    *arg = NULL;
+
+    while (*s && *s != ' ') s++;
+    if (*s)
+    {
+        *s = '\0';      // terminate first word
+        s++;
+        while (*s == ' ') s++;  // skip spaces
+        *arg = s;      // remainder
+    }
+}
+
+
 void trim(char *s)
 {
     char *e;

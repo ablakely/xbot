@@ -48,6 +48,16 @@ struct script_list
     char *scripts[512];
 };
 
+struct lua_timer
+{
+    lua_State *L;
+    int timer_id;
+    int repeat;
+    
+    int lreg;
+    int arg_ref;
+};
+
 extern int block;
 
 extern struct lua_interp lua;
@@ -56,21 +66,22 @@ extern struct irc_conn *instance;
 // events.c
 void lua_init_events();
 int lua_add_handler(lua_State *L);
-void lua_del_handler(lua_State *L);
+int lua_del_handler(lua_State *L);
 void lua_fire_handlers(char *event, ...);
+void lua_callfunc(lua_State *L, int lreg, int argc, ...);
 
 // wrappers.c
 void lua_init_wrappers();
-void xlog_wrapper(lua_State *L);
-void raw_wrapper(lua_State *L);
-void privmsg_wrapper(lua_State *L);
-void notice_wrapper(lua_State *L);
-void join_wrapper(lua_State *L);
-void part_wrapper(lua_State *L);
-void ban_wrapper(lua_State *L);
-void kick_wrapper(lua_State *L);
-void mode_wrapper(lua_State *L);
-void ctcp_wrapper(lua_State *L);
+int xlog_wrapper(lua_State *L);
+int raw_wrapper(lua_State *L);
+int privmsg_wrapper(lua_State *L);
+int notice_wrapper(lua_State *L);
+int join_wrapper(lua_State *L);
+int part_wrapper(lua_State *L);
+int ban_wrapper(lua_State *L);
+int kick_wrapper(lua_State *L);
+int mode_wrapper(lua_State *L);
+int ctcp_wrapper(lua_State *L);
 
 int get_user_host_wrapper(lua_State *L);
 int get_user_user_wrapper(lua_State *L);
@@ -82,6 +93,13 @@ int is_halfop_wrapper(lua_State *L);
 int is_voice_wrapper(lua_State *L);
 int is_on_channel_wrapper(lua_State *L);
 int is_botadmin_wrapper(lua_State *L);
+
+void timer_stub(struct irc_conn *bot, void *data);
+int add_timer_wrapper(lua_State *L);
+int set_timer_name_wrapper(lua_State *L);
+int get_timer_repeat_wrapper(lua_State *L);
+int del_timer_wrapper(lua_State *L);
+int active_timers_wrapper(lua_State *L);
 
 // handlers.c
 void lua_init_handlers();

@@ -2,24 +2,28 @@ local NAME = "hello"
 local VERSION = "v0.5"
 local AUTHOR = "Aaron Blakely"
 local DESCRIPTION = "A simple hello world script for xbot"
+local timerid = 0
+
+function timer_test(data)
+    privmsg(data.where, "timer stub called for " .. data.who .. " timer cycles ".. get_timer_repeat(timerid))
+end
 
 function test(nick, host, chan, text)
-    -- check if text contains "hello"
+    if string.find(text, "!timer") then
+        privmsg(chan, nick .. " created a timer")
 
-
-    if string.find(text, "h") then
-        privmsg(chan, "Hello, " .. nick .. " from test.lua")
+        timerid = add_timer(10, 3, timer_test, { who = nick, where = chan })
     end
 end
 
 function load()
-    -- register_script(NAME, VERSION, AUTHOR, DESCRIPTION)
-
-    add_handler(PRIVMSG_CHAN, test)
+    --if register_script(NAME, VERSION, AUTHOR, DESCRIPTION) then
+        add_handler(PRIVMSG_CHAN, test)
+    --end
 end
 
 function unload()
-    -- unregister_script(NAME)
-
-    del_handler(PRIVMSG_CHAN, test)
+    --if unregister_script(NAME) then
+        del_handler(PRIVMSG_CHAN, test)
+    --end
 end

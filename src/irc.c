@@ -347,7 +347,7 @@ void irc_ctcp(struct irc_conn *bot, char *to, char *fmt, ...)
 
 void irc_parse_raw(struct irc_conn *bot, char *raw)
 {
-    char *user, *host, *par, *text, *chan, *nick, *nicks, *tmp;
+    char *user, *host, *par, *text, *chan, *nick, *nicks, *tmp, *modtext;
     char set = ' ';
     char *buf = NULL;
     char *mode = NULL;
@@ -427,11 +427,15 @@ void irc_parse_raw(struct irc_conn *bot, char *raw)
         {
             if (!strcmp(par, bot->nick))
             {
-                fire_handler(bot, PRIVMSG_SELF, user, host, text);
+                modtext = strdup(text);
+                fire_handler(bot, PRIVMSG_SELF, user, host, modtext);
+                free(modtext);
             }
             else
             {
-                fire_handler(bot, PRIVMSG_CHAN, user, host, par, text);
+                modtext = strdup(text);
+                fire_handler(bot, PRIVMSG_CHAN, user, host, par, modtext);
+                free(modtext);
             }
         }
     }

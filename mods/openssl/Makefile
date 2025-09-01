@@ -1,7 +1,8 @@
 CC=gcc
-CFLAGS=-g -fPIC -I../../lib -lcrypto -lssl
+CFLAGS=-g -fPIC -I../../lib
+LDFLAGS=-lssl -lcrypto
 OBJ=../openssl.so
 
 main:
-	$(CC) -shared -o $(OBJ) $(CFLAGS) ./openssl.c
+	$(CC) -shared -o $(OBJ) ./openssl.c $(CFLAGS) $(LDFLAGS)
 	@echo "All Done!"

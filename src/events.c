@@ -98,7 +98,7 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
     int i, j;
     void (*handler)();
     char linebuf[1024];
-    char *cmd, *arg, *modpath;
+    char *cmd, *arg, *modpath, *buf;
 
     modpath = (char *)malloc(sizeof(char)*500);
 
@@ -121,8 +121,11 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
                     host = va_arg(args, char*);
                     text = va_arg(args, char*);
 
-                    (*handler)(bot, usr, host, text);
+                    buf = strdup(text);
 
+                    (*handler)(bot, usr, host, buf);
+
+                    free(buf);
                     va_end(args);
                 }
                 else if (!strcmp(type, PRIVMSG_CHAN))
@@ -134,7 +137,11 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
                     chan = va_arg(args, char*);
                     text = va_arg(args, char*);
 
-                    (*handler)(bot, usr, host, chan, text);
+                    buf = strdup(text);
+
+                    (*handler)(bot, usr, host, chan, buf);
+
+                    free(buf);
                     va_end(args);
                 }
                 else if (!strcmp(type, JOIN))
@@ -154,7 +161,11 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
 
                     text = va_arg(args, char*);
 
-                    (*handler)(bot, text);
+                    buf = strdup(text);
+
+                    (*handler)(bot, buf);
+
+                    free(buf);
                     va_end(args);
                 }
             }
@@ -169,9 +180,12 @@ void fire_handler(struct irc_conn *bot, char *type, ...)
         usr = va_arg(args, char*);
         host = va_arg(args, char*);
         text = va_arg(args, char*);
+        printf("fire_handler text = %s\n", text);
 
-        cmd = text;
-        arg = skip(cmd, ' ');
+        buf = strdup(text);
+
+        cmd = buf;
+        arg = skip(buf, ' ');
 
         if (!strcmp("JOIN", cmd))
         {

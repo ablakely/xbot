@@ -1,6 +1,7 @@
 #include "util.h"
 #include "lua.h"
 #include "events.h"
+#include "logger.h"
 #include <string.h>
 #include <stdlib.h>
 
@@ -52,7 +53,7 @@ int lua_add_handler(lua_State *L)
     return 1;
 }
 
-void lua_del_handler(lua_State *L)
+int lua_del_handler(lua_State *L)
 {
     char *event;
     int i;
@@ -62,7 +63,7 @@ void lua_del_handler(lua_State *L)
     if (lua_gettop(L) < 2)
     {
         xlog("[lua] Error: del_handler requires 2 arguments\n");
-        return;
+        return 0;
     }
 
     luaL_checktype(L, 1, LUA_TSTRING);
@@ -90,13 +91,14 @@ void lua_del_handler(lua_State *L)
             }
         }
     }
+
+    return 0;
 }
 
-void lua_callfunc(int lreg, int argc, ...)
+void lua_callfunc(lua_State *L, int lreg, int argc, ...)
 {
     int i;
     va_list args;
-    lua_State *L = lua.L;
     int stackSize = lua_gettop(L);
 
     va_start(args, argc);
@@ -105,10 +107,10 @@ void lua_callfunc(int lreg, int argc, ...)
 
     for (i = 0; i < argc; i++)
     {
-        lua_pushstring(lua.L, va_arg(args, char *));
+        lua_pushstring(L, va_arg(args, char *));
     }
 
-    if (lua_pcall(lua.L, argc, 0, 0) != LUA_OK)
+    if (lua_pcall(L, argc, 0, 0) != LUA_OK)
     {
         const char *err = lua_tostring(L, -1);
         xlog("[lua/events/lua_callfunc] Error: %s\n", err);
@@ -142,7 +144,7 @@ void lua_fire_handlers(char *event, ...)
                 chan = va_arg(args, char *);
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 4, user, host, chan, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 4, user, host, chan, text);
             }
             else if (!strcmp(event, PRIVMSG_SELF))
             {
@@ -152,7 +154,7 @@ void lua_fire_handlers(char *event, ...)
                 host = va_arg(args, char *);
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 3, user, host, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 3, user, host, text);
             }
             else if (!strcmp(event, JOIN))
             {
@@ -162,7 +164,7 @@ void lua_fire_handlers(char *event, ...)
                 host = va_arg(args, char *);
                 chan = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 3, user, host, chan);
+                lua_callfunc(lua.L, lua.events[i].lreg, 3, user, host, chan);
             }
             else if (!strcmp(event, JOIN_MYSELF))
             {
@@ -170,7 +172,7 @@ void lua_fire_handlers(char *event, ...)
 
                 chan = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 1, chan);
+                lua_callfunc(lua.L, lua.events[i].lreg, 1, chan);
             }
             else if (!strcmp(event, PART))
             {
@@ -180,7 +182,7 @@ void lua_fire_handlers(char *event, ...)
                 host = va_arg(args, char *);
                 chan = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 3, user, host, chan);
+                lua_callfunc(lua.L, lua.events[i].lreg, 3, user, host, chan);
             }
             else if (!strcmp(event, PART_MYSELF))
             {
@@ -188,7 +190,7 @@ void lua_fire_handlers(char *event, ...)
 
                 chan = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 1, chan);
+                lua_callfunc(lua.L, lua.events[i].lreg, 1, chan);
             }
             else if (!strcmp(event, QUIT))
             {
@@ -198,7 +200,7 @@ void lua_fire_handlers(char *event, ...)
                 host = va_arg(args, char *);
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 3, user, host, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 3, user, host, text);
             }
             else if (!strcmp(event, NICK))
             {
@@ -208,7 +210,7 @@ void lua_fire_handlers(char *event, ...)
                 host = va_arg(args, char *);
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 3, user, host, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 3, user, host, text);
             }
             else if (!strcmp(event, NICK_MYSELF))
             {
@@ -216,7 +218,7 @@ void lua_fire_handlers(char *event, ...)
 
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 1, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 1, text);
             }
             else if (!strcmp(event, CTCP))
             {
@@ -226,11 +228,11 @@ void lua_fire_handlers(char *event, ...)
                 host = va_arg(args, char *);
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 3, user, host, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 3, user, host, text);
             }
             else if (!strcmp(event, IRC_CONNECTED))
             {
-                lua_callfunc(lua.events[i].lreg, 0);
+                lua_callfunc(lua.L, lua.events[i].lreg, 0);
             }
             else if (!strcmp(event, IRC_NAMREPLY))
             {
@@ -239,7 +241,7 @@ void lua_fire_handlers(char *event, ...)
                 chan = va_arg(args, char *);
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 2, chan, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 2, chan, text);
             }
             else if (!strcmp(event, IRC_WHOREPLY))
             {
@@ -248,15 +250,15 @@ void lua_fire_handlers(char *event, ...)
                 chan = va_arg(args, char *);
                 text = va_arg(args, char *);
 
-                lua_callfunc(lua.events[i].lreg, 2, chan, text);
+                lua_callfunc(lua.L, lua.events[i].lreg, 2, chan, text);
             }
             else if (!strcmp(event, NICK_INUSE))
             {
-                lua_callfunc(lua.events[i].lreg, 0);
+                lua_callfunc(lua.L, lua.events[i].lreg, 0);
             }
             else if (!strcmp(event, TICK))
             {
-                lua_callfunc(lua.events[i].lreg, 0);
+                lua_callfunc(lua.L, lua.events[i].lreg, 0);
             }
         }
     }

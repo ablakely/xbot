@@ -21,7 +21,7 @@ void add_channel(char *name)
     strlcpy(channels[chan_count]->name, name, 32);
 
     channels[chan_count]->user_count = 0;
-    channels[chan_count]->users = calloc(256, sizeof(struct user));
+    channels[chan_count]->users = calloc(4096, sizeof(struct user));
 
     chan_count++;
 }
