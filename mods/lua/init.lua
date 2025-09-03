@@ -4,6 +4,7 @@
 -- Written by Aaron Blakely
 
 local handlerstore = {}
+local chancommandstore = {}
 
 function add_handler(type, func)
     local ret = _add_handler(type, func)
@@ -36,3 +37,34 @@ function del_handler(type, func)
 
     xlog("[lua/init.lua] del_handler: Handler not found")
 end
+
+function chan_command_stub(nick, host, chan, text)
+    local cmd, args = string.match(text, "^!(%S+)%s*(.*)")
+
+    if cmd then
+        if chancommandstore[cmd] then
+            if not args then
+                args = nil
+            end
+
+            chancommandstore[cmd][1](nick, host, chan, args)
+        end
+    end
+end
+
+function add_chan_command(cmd, func)
+    local cfname = debug.getinfo(2, "S").source
+
+    chancommandstore[cmd] = {func, cfname}
+end
+
+function del_chan_command(cmd)
+    chancommandstore[cmd] = nil
+end
+
+function __luaenv_init()
+    add_handler(PRIVMSG_CHAN, chan_command_stub)
+end
+
+-- run init routine
+__luaenv_init()

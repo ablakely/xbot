@@ -27,6 +27,7 @@
 struct lua_interp lua; 
 struct irc_conn *instance;
 
+/*
 int append_script(char *fname)
 {
     char *scriptlist = db_get_hash_char(get_bot_db(), "lua.scripts");
@@ -100,6 +101,71 @@ int remove_script(char *fname)
 
     return 0;
 }
+*/
+
+int append_script(char *fname)
+{
+    if (!fname) return -1;
+
+    char *scriptlist_orig = db_get_hash_char(get_bot_db(), "lua.scripts");
+    char newlist[1024]; // big enough for your use case
+
+    if (!scriptlist_orig || scriptlist_orig[0] == '\0') {
+        // First script, just set it
+        db_set_hash_char(get_bot_db(), "lua.scripts", fname);
+    } else {
+        // Append safely
+        snprintf(newlist, sizeof(newlist), "%s,%s", scriptlist_orig, fname);
+        db_set_hash_char(get_bot_db(), "lua.scripts", newlist);
+    }
+
+    db_write(get_bot_db(), instance->db_file);
+    return 0;
+}
+
+int remove_script(char *fname)
+{
+    if (!fname) return -1;
+
+    char *scriptlist_orig = db_get_hash_char(get_bot_db(), "lua.scripts");
+    if (!scriptlist_orig || scriptlist_orig[0] == '\0') return 0;
+
+    char *scriptlist = strdup(scriptlist_orig); // make a safe copy
+    char newlist[1024];
+    char *p = scriptlist;
+    char *q = newlist;
+    size_t len = strlen(fname);
+    int found = 0;
+
+    while (*p) {
+        if (strncmp(p, fname, len) == 0 && (p[len] == ',' || p[len] == '\0')) {
+            // Skip this script
+            p += len;
+            if (*p == ',') p++;
+            found = 1;
+            continue;
+        }
+        *q++ = *p++;
+    }
+
+    free(scriptlist);
+
+    if (!found) return 0;
+
+    *q = '\0';
+    if (q > newlist && q[-1] == ',') q[-1] = '\0';
+
+    if (strlen(newlist) > 0) {
+        db_set_hash_char(get_bot_db(), "lua.scripts", newlist);
+    } else {
+        db_del_hash(get_bot_db(), "lua.scripts");
+    }
+
+    db_write(get_bot_db(), instance->db_file);
+
+    return 0;
+}
+
 
 struct script_list get_scripts()
 {
@@ -191,6 +257,7 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
                 xlog("[lua] Error loading lua script: %s\n", lua_tostring(lua.L, -1));
             }
 
+            free(buf);
             return;
         }
 
@@ -211,6 +278,7 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
                 xlog("[lua] Error executing lua script: %s\n", lua_tostring(lua.L, -1));
             }
 
+            free(buf);
             return;
         }
 
@@ -253,6 +321,7 @@ void lua_load_script(struct irc_conn *bot, char *user, char *host, char *chan, c
                     xlog("[lua] Error calling load() in %s: %s\n", buf, lua_tostring(lua.L, -1));
                 }
 
+                free(buf);
                 return;
             }
 

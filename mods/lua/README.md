@@ -42,6 +42,18 @@ Example:
 del_handler(PRIVMSG_CHAN, msg)
 ```
 
+### `add_chan_command("trigger", callback)`
+
+Adds a channel command to the bot which calls the callback when !trigger occurs in the channel.
+
+Note: Only one callback per trigger using this.
+
+The trigger prefix is ! and is automatically added to the trigger var
+
+### `del_chan_command("trigger")`
+
+Removes a channel command from the bot.
+
 ## IRC Commands
 
 ### `raw(message)`

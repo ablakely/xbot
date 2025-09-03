@@ -101,6 +101,9 @@ int get_timer_repeat_wrapper(lua_State *L);
 int del_timer_wrapper(lua_State *L);
 int active_timers_wrapper(lua_State *L);
 
+int db_get(lua_State *L);
+int db_set(lua_State *L);
+
 // handlers.c
 void lua_init_handlers();
 void lua_unload_handlers();

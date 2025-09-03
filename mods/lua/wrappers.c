@@ -5,6 +5,7 @@
 #include "logger.h"
 #include <lua5.3/lauxlib.h>
 #include <stdlib.h>
+#include <string.h>
 
 #ifdef _WIN32
 #include <lua.h>
@@ -42,6 +43,9 @@ void lua_init_wrappers()
     lua_register(lua.L, "get_timer_repeat", get_timer_repeat_wrapper);
     lua_register(lua.L, "del_timer", del_timer_wrapper);
     lua_register(lua.L, "active_timers", active_timers_wrapper);
+
+    lua_register(lua.L, "db_get", db_get);
+    lua_register(lua.L, "db_set", db_set);
 }
 
 int xlog_wrapper(lua_State *L)
@@ -452,3 +456,43 @@ int active_timers_wrapper(lua_State *L)
     return 1;
 }
 
+// db 
+
+int db_get(lua_State *L)
+{
+    char *dbkey;
+    int dbtype;
+
+    if (lua_gettop(L) < 1) {
+        xlog("[lua] Error: db_get requires 1 argument\n");
+        return 0;
+    }
+
+    luaL_checktype(L, 1, LUA_TSTRING);
+
+    dbkey  = (char *)lua_tostring(L, 1);
+    dbtype = db_get_hash_type(get_bot_db(), dbkey);
+
+    switch (dbtype)
+    {
+        case DB_TYPE_CHAR:
+            lua_pushstring(L, db_get_hash_char(get_bot_db(), dbkey));
+            return 1;
+        break;
+        case DB_TYPE_INT:
+            lua_pushnumber(L, db_get_hash_int(get_bot_db(), dbkey));
+            return 1;
+        break;
+        case DB_TYPE_FLOAT:
+            lua_pushnumber(L, db_get_hash_float(get_bot_db(), dbkey));
+            return 1;
+        break;
+    }
+
+    return 0;
+}
+
+int db_set(lua_State *L)
+{
+    return 0;
+}
